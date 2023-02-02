@@ -1,0 +1,72 @@
+{
+  
+    "manifest_version": 3,
+  
+    "name": "Traditou",
+    "description": "Helps you learn Canadian French with the trifecta of French Canadian streaming websites: Noovo, Tou.tv, and TeleQuebec.  Uses your browser's Auto-Translator to ensure direct translations.",
+    "version": "1.0.0",
+    "declarative_net_request": {
+      "rule_resources": [{
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }]},
+
+    "icons": {
+      "128":"icons/icon128.png",
+      "48":"icons/icon48.png",
+      "32":"icons/icon32.png",
+      "24":"icons/icon24.png",
+      "16":"icons/icon16.png"
+    },
+
+    "background": {
+        "service_worker": "background.js"
+    },
+  
+    "permissions": [
+        "storage",
+        "tabs",
+        "declarativeNetRequest",
+        "declarativeNetRequestFeedback",
+        "webRequest"
+      ],
+    "host_permissions": [
+        "https://video.telequebec.tv/*",
+        "https://*.brightcovecdn.com/*",
+        "https://www.noovo.ca/*",
+        "https://*.9c9media.com/*",
+        "https://*.tou.tv/*",
+        "https://*.akamaized.net/*"
+    ],
+    "content_scripts":[
+      {
+        "matches":["https://www.noovo.ca/*"],
+        "js":["dist/noovo_bundle.js"]
+      },
+      {
+        "matches":["https://ici.tou.tv/*"],
+        "js":["dist/toutv_bundle.js"]
+      },
+      {
+        "matches":["https://video.telequebec.tv/*"],
+        "js":["dist/telequebec_bundle.js"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": [ "./fonts/Ogg-Roman.ttf" ],
+        "matches": [ "https://*/*" ]
+      },
+      {
+        "resources": [ "content/utils.js" ],
+        "matches": [ "https://*/*" ]
+
+      }
+    ],
+    "action": {
+     "default_icon": "icons/icon32.png",
+     "default_popup": "popup.html"
+    }
+
+  }
