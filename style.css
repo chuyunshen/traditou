@@ -1,0 +1,105 @@
+@font-face {
+    font-family: "ogg";
+    src: url("./fonts/Ogg-Roman.ttf");
+}
+
+#contact {
+    margin-top: 14px;
+}
+
+#footer {
+    margin: 0 auto;
+    display: block;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+#footer-icons {
+    display: flex;
+}
+
+.share-icon {
+    margin-left: 7px;
+  }
+  
+a {
+color: black;
+}
+
+.hover-grey:hover {
+color: grey;
+}
+
+a:visited {
+color: black;
+}
+
+button a:hover {
+color: white !important;
+}
+
+button > a {
+text-decoration: none;
+}
+
+.fa {
+font-size: 24px;
+}
+
+.line {
+height: 1px;
+border: none;
+background-color: #e8e8e8;
+width: 100%;
+margin-top: 20px;
+margin-bottom: 20px;
+}
+
+button a:hover {
+color: white !important;
+}
+
+button > a {
+text-decoration: none;
+}
+
+button {
+font-size: 14px;
+font-family: Noto Serif SC;
+padding: 5px;
+padding-left: 10px;
+padding-right: 10px;
+border-radius: 10px;
+border: 1px grey solid;
+background-color: white;
+}
+
+button:hover:enabled {
+    cursor: pointer;
+    background-color: black;
+    color: white;
+}
+
+button:hover:enabled > a {
+    color: white;
+}
+
+button:focus {
+    outline:0;
+}
+
+select:focus {
+    outline:0;
+}
+
+select {
+    padding-left: 3px;
+    border: 1px grey solid;
+    border-radius: 5px;
+}
+
+h4 {
+    text-align: center;
+}
