@@ -28,12 +28,11 @@
   However, it's not always a group of 3. So I need to check one by one and decide the text and start times
   */
 
-  function squashCues(cues) {
+  function squashCues(cues, cueIdCount) {
       let squashedCues = [];
       let startTime;
       let rollingLines = [];
       let displayed = [];
-      let cueIdCount = 0;
       for (let [index, cue] of cues.entries()) {
           if (rollingLines.length === 0) {
               startTime = cue.startTime;
@@ -68,14 +67,12 @@
           }
       }
       if (rollingLines.length > 0) {
-          // if (!startTime) {
-          //     startTime = cues[cues.length - 1].startTime;
-          // }
           let newCue = new VTTCue(startTime, cues[cues.length - 1].endTime, rollingLines.join(" "));
           newCue.id = cueIdCount;
+          cueIdCount++;
           squashedCues.push(newCue);
       }
-      return squashedCues; // this startTime is for the next batch
+      return [squashedCues, cueIdCount]; 
   }
 
 
@@ -214,16 +211,21 @@
   })(document.createElement("style"));
 
 
+  // TODO: change the name of this.
   function addEnglishToOriginalCues(host, cueDict, processedCueIds, video) {
       let notYetTranslatedCueDict = {};
       for (let cueId in cueDict) {
           let cue = cueDict[cueId];
           if (processedCueIds.includes(cue.id)) continue;
           cue.bilingualLines = [];
+          cue.frenchLines = [];
+          cue.englishLines = [];
           const div = document.getElementById("translate" + cue.id);
           if (div) {
               const frenchLine = cue.text.trim();
               const englishLine = div.innerText.trim();
+              cue.frenchLines.push(frenchLine);
+              cue.englishLines.push(englishLine);
               if (frenchLine === englishLine) {
                   // if the french didnt get translated yet, dont show double french
                   cue.bilingualLines.push(frenchLine);
@@ -235,48 +237,102 @@
                   cue.bilingualLines.push(bilingualLine);
                   processedCueIds.push(cue.id);
               }
-              cue.text = cue.bilingualLines.join("\n");
+              // cue.text = cue.bilingualLines.join("\n");
           } else {
               console.log("div cant be found");
           }
       }
-      // // TODO
-      // let track =  document.getElementById("français");
-      // if (track) {
-      //     track.track.mode = "hidden";
-      // }
 
-      let bilingualTrack;
-      function createBilingualTrack(video) {
-          bilingualTrack = video.addTextTrack("captions", "bilingual-captions", "fr-en", );
-          bilingualTrack.id = "bilingual-track";
-          bilingualTrack.mode = "showing";
-          return bilingualTrack;
-      }
-      if (host === "telequebec") {
-          if (video.textTracks.length == 2) {
-              let bilingualTrack = createBilingualTrack(video);
-              video.append(bilingualTrack);
-          } else {
-              bilingualTrack = video.textTracks[2];
-              bilingualTrack.mode = "showing";
+      function appendCues(track, type) {
+          for (const cueId in cueDict) {
+              let cue = cueDict[cueId];
+              var theCue = track.cues.getCueById(cueId);
+              if (!theCue) {
+                  // make new cue
+                  theCue = new VTTCue(cue.startTime, cue.endTime, "");
+                  theCue.align = "center";
+                  theCue.position = "auto";
+                  theCue.line = "auto";
+                  theCue.id = cue.id;
+              }
+
+              if (type === "dual-mode") {
+                  theCue.text = cue.bilingualLines.join("\n");
+              } else if (type === "english-mode") {
+                  theCue.text = cue.englishLines.join("\n");
+              } else if (type === "french-mode") {
+                  theCue.text = cue.frenchLines.join("\n");
+              }
+              track.addCue(theCue);
           }
-      } else if (host === "noovo" || host === "toutv") {
-          if (video.textTracks.length == 0) {
-              let bilingualTrack = createBilingualTrack(video);
-              video.append(bilingualTrack);
-          } else {
-              bilingualTrack = video.textTracks[0];
-              bilingualTrack.mode = "showing";
+      }
+
+      function createTrack(video, type) {
+          track = video.addTextTrack("captions", type);
+          // bilingualTrack.id = "bilingual-track";   // the id is a readonly attribute
+          appendCues(track, type);
+          return track;
+      }
+      if ((host === "telequebec" && video.textTracks.length == 2) || 
+          ((host === "noovo" || host === "toutv") && video.textTracks.length == 0)) {
+          for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
+              let track = createTrack(video, mode);
+              video.append(track);
           }
+      } else {
+          let bilingualTrack = video.textTracks[video.textTracks.length - 3];
+          appendCues(bilingualTrack, "dual-mode");
+          let englishTrack = video.textTracks[video.textTracks.length - 2];
+          appendCues(englishTrack, "english-mode");
+          let frenchTrack = video.textTracks[video.textTracks.length - 1];
+          appendCues(frenchTrack, "french-mode");
       }
-      for (const cueId in cueDict) {
-          let cue = cueDict[cueId];
-          bilingualTrack.addCue(cue);
-      }
+
+
       cueDict = notYetTranslatedCueDict;
 
       return [cueDict, processedCueIds];
+  }
+
+  function toggleTextTracksTelequebec(mode, video) {
+      let index = 0;
+      modeIndexDict = {}; // key - mode; value - index
+      while (index < video.textTracks.length) {
+          const textTrack = video.textTracks[index];
+          if (textTrack.label === "français") {
+              modeIndexDict["off"] = index;
+          }
+          if (textTrack.label === "dual-mode") {
+              modeIndexDict["dual-mode"] = index;
+          }
+          if (textTrack.label === "english-mode") {
+              modeIndexDict["english-mode"] = index;
+          }
+          if (textTrack.label === "french-mode") {
+              modeIndexDict["french-mode"] = index;
+          }
+          index ++;
+      }
+      if (!video.textTracks[modeIndexDict["off"]] || !video.textTracks[modeIndexDict["dual-mode"]] || 
+          !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+      function showTargetTextTrackAndHideOthers(targetIndex) {
+          let index = 0;
+          while (index < video.textTracks.length) {
+              if (index === targetIndex) {
+                  video.textTracks[index].mode = "showing";
+              } else {
+                  video.textTracks[index].mode = "hidden";
+              }
+              index++;
+          }
+      }
+
+      showTargetTextTrackAndHideOthers(modeIndexDict[mode]);
+  }
+
+  async function getSavedMode() {
+      (await chrome.storage.local.get(["mode"]))["mode"];
   }
 
   // telequebec uses brightcove to manage their videos, so first I need to find the vtt files from the networks requests/responses.
@@ -285,15 +341,20 @@
   // cueDict is a dictionary of cues to be processed (just downloaded).
   var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
   var processedCueIds = [];
-
+  var mode = getSavedMode();
+  var cueIdCount = 0;
 
   var prepareContainer = function(mutations, observer){
       for (const mutation of mutations){
           if (mutation.target.tagName === "VIDEO") {
               let track =  document.getElementById("français");
-              // if (track) {track.remove()} // cannot remove the original track, because if it's removed, the network no longer sends vtt files.
-              if (track) {
+              if (track && mode !== 'off') {
                   track.track.mode = "hidden";
+              }
+              let timeDisplay =  document.getElementsByClassName("vjs-current-time vjs-time-control vjs-control")[0];
+              if (timeDisplay) {
+                  timeDisplay.translate = "no";
+                  timeDisplay.setAttribute("translate", "no");
               }
           }
       }
@@ -308,26 +369,33 @@
   window.observer.observe(wrapper, {characterData: true, subtree: true});
 
   chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
-      const vtt = response["original_vtt"];
-      let cues = await parseVttCues(vtt);
-      cues = squashCues(cues);
-      for (const cue of cues) {
-          if (processedCueIds.includes(cue.id)) continue;
-          if (!cueDict.hasOwnProperty(cue.id)) {
-              cue.isElementCreated = false;
-              cue.align = "center";
-              cue.position = "auto";
-              cue.line = "auto";
-              cueDict[cue.id] = cue;
+      if (response["type"] === "mode") {
+          mode = response["mode"];
+          toggleTextTracksTelequebec(mode, document.getElementById("player_html5_api"));
+      } else if (response["type"] === "subtitles") {
+          const vtt = response["original_vtt"]; 
+          let frenchCues = await parseVttCues(vtt);
+          [frenchCues, cueIdCount] = squashCues(frenchCues, cueIdCount);
+          for (const cue of frenchCues) {
+              if (processedCueIds.includes(cue.id)) continue;
+              if (!cueDict.hasOwnProperty(cue.id)) {
+                  cue.isElementCreated = false;
+                  cue.align = "center";
+                  cue.position = "auto";
+                  cue.line = "auto";
+                  cueDict[cue.id] = cue;
+              }
           }
+          createTranslateElements(frenchCues, getWrapper(document));
       }
-      createTranslateElements(cues, getWrapper(document));
       return true;
   });
 
 
   function addEnglishToOriginalCuesWrapper(mutations, observer) {
-      [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, document.getElementById("player_html5_api"));
+      const video = document.getElementById("player_html5_api");
+      [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video);
+      toggleTextTracksTelequebec(mode, video);
   }
 
   addRule("video::cue", {

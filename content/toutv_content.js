@@ -1,8 +1,11 @@
 
-import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues} from "./utils";
+import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues, getSavedMode, toggleTextTracksNoovoAndToutv} from "./utils";
 
+console.log("toutv")
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
+var mode = getSavedMode();
+
 var wrapper = createWrapper(document);
 var modified = false;
 
@@ -15,7 +18,7 @@ var prepareContainer = function(mutations, observer){
                 modifyVideoPlayer();
                 modified = true;
             }
-            document.getElementsByClassName("vjs-text-track-display")[0].style.display = "none";
+            // document.getElementsByClassName("vjs-text-track-display")[0].style.display = "none";
         }
     }
 }
@@ -36,25 +39,30 @@ function numberCues(cues) {
 }
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
-    const vtt = response["original_vtt"];
-    let cues = await parseVttCues(vtt);
-    cues = numberCues(cues);
-    console.log(cues);
-    for (const cue of cues) {
-        if (processedCueIds.includes(cue.id)) continue;
-        if (!cueDict.hasOwnProperty(cue.id)) {
-            cue.isElementCreated = false;
-            cue.align = "center";
-            cue.position = "auto";
-            cue.line = "auto";
-            cueDict[cue.id] = cue;
+    if (response["type"] === "mode") {
+        mode = response["mode"];
+        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+    } else if (response["type"] === "subtitles") {
+        const vtt = response["original_vtt"];
+        let cues = await parseVttCues(vtt);
+        cues = numberCues(cues);
+        console.log(cues);
+        for (const cue of cues) {
+            if (processedCueIds.includes(cue.id)) continue;
+            if (!cueDict.hasOwnProperty(cue.id)) {
+                cue.isElementCreated = false;
+                cue.align = "center";
+                cue.position = "auto";
+                cue.line = "auto";
+                cueDict[cue.id] = cue;
+            }
         }
-    }
 
-    createTranslateElements(cues, wrapper);
-    if (!getWrapper(document)) {
-        const appendable = document.getElementById("player");
-        appendable.appendChild(wrapper);
+        createTranslateElements(cues, wrapper);
+        if (!getWrapper(document)) {
+            const appendable = document.getElementById("player");
+            appendable.appendChild(wrapper);
+        }
     }
     return true;
 });
@@ -63,6 +71,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("VIDEO")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video);
+        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
 }
 
 addRule("video::cue", {

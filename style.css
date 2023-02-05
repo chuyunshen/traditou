@@ -3,6 +3,17 @@
     src: url("./fonts/Ogg-Roman.ttf");
 }
 
+@font-face {
+    font-family: "maler";
+    src: url("./fonts/Maler.ttf");
+}
+
+#title {
+    margin-top: 80px;
+    font-family: "ogg";
+    text-align: center;
+}
+
 #contact {
     margin-top: 14px;
 }
@@ -18,6 +29,8 @@
 
 #footer-icons {
     display: flex;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 .share-icon {
@@ -102,4 +115,97 @@ select {
 
 h4 {
     text-align: center;
+    font-weight: bold;
 }
+
+.question {
+    font-weight: bold;
+}
+
+
+
+#popup-body {
+    font-size: 15px;
+    height:480px; 
+    width: 350px; 
+    font-family: 'Noto Serif SC', serif;
+  }
+  
+  .radio-group-wrapper {
+    display: flex;
+    min-height: 200px;
+  }
+  
+  .radio-group {
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 48em) {
+    .radio-group {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+  }
+  
+  .radio-group-label {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+  }
+  
+  .radio-label {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+  }
+  @media (max-width: 48em) {
+    .radio-label {
+      display: block;
+      margin: 10px 0;
+    }
+  }
+  .radio-label input {
+    opacity: 0;
+    position: absolute;
+  }
+  .radio-label .inner-label {
+    position: relative;
+    display: inline-block;
+    padding-left: 40px;
+  }
+  .radio-label .inner-label:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    border-bottom: 1px dashed rgba(100, 100, 100, 1);
+    width: 30px;
+    transition: border-bottom 0.5s ease;
+  }
+  .radio-label input:focus ~ .inner-label:before {
+    border-bottom: 1px dashed rgba(100, 100, 100, 1);
+  }
+  .radio-label input:checked ~ .inner-label:after {
+    content: "✓";
+    /* color: #fff; */
+    position: absolute;
+    font-size: 12px;
+    left: 12px;
+    top: 1px;
+  }
+
+
+  #popup-title {
+    font-size: large; 
+    display: block; 
+    margin: 0 auto; 
+    text-align: center; 
+    padding-top:15px;
+    font-family: "maler";
+  }
+
+  #learn-more {
+    margin-bottom: 30px;
+  }

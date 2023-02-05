@@ -118,16 +118,21 @@
   })(document.createElement("style"));
 
 
+  // TODO: change the name of this.
   function addEnglishToOriginalCues(host, cueDict, processedCueIds, video) {
       let notYetTranslatedCueDict = {};
       for (let cueId in cueDict) {
           let cue = cueDict[cueId];
           if (processedCueIds.includes(cue.id)) continue;
           cue.bilingualLines = [];
+          cue.frenchLines = [];
+          cue.englishLines = [];
           const div = document.getElementById("translate" + cue.id);
           if (div) {
               const frenchLine = cue.text.trim();
               const englishLine = div.innerText.trim();
+              cue.frenchLines.push(frenchLine);
+              cue.englishLines.push(englishLine);
               if (frenchLine === englishLine) {
                   // if the french didnt get translated yet, dont show double french
                   cue.bilingualLines.push(frenchLine);
@@ -139,52 +144,122 @@
                   cue.bilingualLines.push(bilingualLine);
                   processedCueIds.push(cue.id);
               }
-              cue.text = cue.bilingualLines.join("\n");
+              // cue.text = cue.bilingualLines.join("\n");
           } else {
               console.log("div cant be found");
           }
       }
-      // // TODO
-      // let track =  document.getElementById("français");
-      // if (track) {
-      //     track.track.mode = "hidden";
-      // }
 
-      let bilingualTrack;
-      function createBilingualTrack(video) {
-          bilingualTrack = video.addTextTrack("captions", "bilingual-captions", "fr-en", );
-          bilingualTrack.id = "bilingual-track";
-          bilingualTrack.mode = "showing";
-          return bilingualTrack;
-      }
-      if (host === "telequebec") {
-          if (video.textTracks.length == 2) {
-              let bilingualTrack = createBilingualTrack(video);
-              video.append(bilingualTrack);
-          } else {
-              bilingualTrack = video.textTracks[2];
-              bilingualTrack.mode = "showing";
+      function appendCues(track, type) {
+          for (const cueId in cueDict) {
+              let cue = cueDict[cueId];
+              var theCue = track.cues.getCueById(cueId);
+              if (!theCue) {
+                  // make new cue
+                  theCue = new VTTCue(cue.startTime, cue.endTime, "");
+                  theCue.align = "center";
+                  theCue.position = "auto";
+                  theCue.line = "auto";
+                  theCue.id = cue.id;
+              }
+
+              if (type === "dual-mode") {
+                  theCue.text = cue.bilingualLines.join("\n");
+              } else if (type === "english-mode") {
+                  theCue.text = cue.englishLines.join("\n");
+              } else if (type === "french-mode") {
+                  theCue.text = cue.frenchLines.join("\n");
+              }
+              track.addCue(theCue);
           }
-      } else if (host === "noovo" || host === "toutv") {
-          if (video.textTracks.length == 0) {
-              let bilingualTrack = createBilingualTrack(video);
-              video.append(bilingualTrack);
-          } else {
-              bilingualTrack = video.textTracks[0];
-              bilingualTrack.mode = "showing";
+      }
+
+      function createTrack(video, type) {
+          track = video.addTextTrack("captions", type);
+          // bilingualTrack.id = "bilingual-track";   // the id is a readonly attribute
+          appendCues(track, type);
+          return track;
+      }
+      if ((host === "telequebec" && video.textTracks.length == 2) || 
+          ((host === "noovo" || host === "toutv") && video.textTracks.length == 0)) {
+          for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
+              let track = createTrack(video, mode);
+              video.append(track);
           }
+      } else {
+          let bilingualTrack = video.textTracks[video.textTracks.length - 3];
+          appendCues(bilingualTrack, "dual-mode");
+          let englishTrack = video.textTracks[video.textTracks.length - 2];
+          appendCues(englishTrack, "english-mode");
+          let frenchTrack = video.textTracks[video.textTracks.length - 1];
+          appendCues(frenchTrack, "french-mode");
       }
-      for (const cueId in cueDict) {
-          let cue = cueDict[cueId];
-          bilingualTrack.addCue(cue);
-      }
+
+
       cueDict = notYetTranslatedCueDict;
 
       return [cueDict, processedCueIds];
   }
 
+  function toggleTextTracksNoovoAndToutv(mode, video, originalSubtitles) {
+      let index = 0;
+      modeIndexDict = {}; // key - mode; value - index
+      while (index < video.textTracks.length) {
+          const textTrack = video.textTracks[index];
+          if (textTrack.label === "dual-mode") {
+              modeIndexDict["dual-mode"] = index;
+          }
+          if (textTrack.label === "english-mode") {
+              modeIndexDict["english-mode"] = index;
+          }
+          if (textTrack.label === "french-mode") {
+              modeIndexDict["french-mode"] = index;
+          }
+          index ++;
+      }
+      if (!video.textTracks[modeIndexDict["dual-mode"]] || !video.textTracks[modeIndexDict["english-mode"]] || 
+          !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+      function showTargetTextTrackAndHideOthers(mode) {
+          if (mode === "off") {
+              if (originalSubtitles) {
+                  originalSubtitles.style.display = 'block';
+              } 
+              let index = 0;
+              while (index < video.textTracks.length) {
+                  video.textTracks[index].mode = "hidden";
+                  index++;
+              }
+              return;
+          }
+
+          if (originalSubtitles) {
+              originalSubtitles.style.display = 'none'; // this comes up at every mutation tho
+          } 
+          let targetIndex = modeIndexDict[mode];
+          let index = 0;
+          while (index < video.textTracks.length) {
+              if (index === targetIndex) {
+                  video.textTracks[index].mode = "showing";
+              } else {
+                  video.textTracks[index].mode = "hidden";
+              }
+              index++;
+          }
+      }
+
+      showTargetTextTrackAndHideOthers(mode);
+  }
+
+  async function getSavedMode() {
+      (await chrome.storage.local.get(["mode"]))["mode"];
+  }
+
+  console.log("toutv");
   var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
   var processedCueIds = [];
+  var mode = getSavedMode();
+
   var wrapper = createWrapper(document);
   var modified = false;
 
@@ -197,7 +272,7 @@
                   modifyVideoPlayer();
                   modified = true;
               }
-              document.getElementsByClassName("vjs-text-track-display")[0].style.display = "none";
+              // document.getElementsByClassName("vjs-text-track-display")[0].style.display = "none";
           }
       }
   };
@@ -218,25 +293,30 @@
   }
 
   chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
-      const vtt = response["original_vtt"];
-      let cues = await parseVttCues(vtt);
-      cues = numberCues(cues);
-      console.log(cues);
-      for (const cue of cues) {
-          if (processedCueIds.includes(cue.id)) continue;
-          if (!cueDict.hasOwnProperty(cue.id)) {
-              cue.isElementCreated = false;
-              cue.align = "center";
-              cue.position = "auto";
-              cue.line = "auto";
-              cueDict[cue.id] = cue;
+      if (response["type"] === "mode") {
+          mode = response["mode"];
+          toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+      } else if (response["type"] === "subtitles") {
+          const vtt = response["original_vtt"];
+          let cues = await parseVttCues(vtt);
+          cues = numberCues(cues);
+          console.log(cues);
+          for (const cue of cues) {
+              if (processedCueIds.includes(cue.id)) continue;
+              if (!cueDict.hasOwnProperty(cue.id)) {
+                  cue.isElementCreated = false;
+                  cue.align = "center";
+                  cue.position = "auto";
+                  cue.line = "auto";
+                  cueDict[cue.id] = cue;
+              }
           }
-      }
 
-      createTranslateElements(cues, wrapper);
-      if (!getWrapper(document)) {
-          const appendable = document.getElementById("player");
-          appendable.appendChild(wrapper);
+          createTranslateElements(cues, wrapper);
+          if (!getWrapper(document)) {
+              const appendable = document.getElementById("player");
+              appendable.appendChild(wrapper);
+          }
       }
       return true;
   });
@@ -245,6 +325,7 @@
   function addEnglishToOriginalCuesWrapper(mutations, observer) {
       const video = document.getElementsByTagName("VIDEO")[0];
       [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video);
+          toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
   }
 
   addRule("video::cue", {

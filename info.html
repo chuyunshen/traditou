@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body style="font-family: Noto Serif SC">
+    <div class="wrapper" style="margin: 0 auto; display: block; width: 70%;"> 
+      <h1 id="title">Traditou</h1>
+      
+      <div id="table-of-contents">
+        <h3>Table of Contents</h3>
+        <div><a href="#intro">Introduction</a></div>
+        <div><a href="#how">How</a></div>
+        <div><a href="#why">Why Traditou</a></div>
+        <div><a href="#tutorial">Tutorial</a></div>
+        <div><a href="#faq">FAQs</a></div>
+        <div><a href="#support-me">Support me</a></div>
+      </div>
+
+
+      <h3 id="intro">Introduction</h3>
+      <p>I've wanted to watch De Garde 24/7, Infoman, and many other French Canadian shows for a while now. 
+        The only problem is that my French is poor and watching French shows with only French subtitles and 
+        googling at the same time is not as enjoyable as it could be. I even sent an email to TeleQuebec asking 
+        if they would release English subtitles for De garde 24/7. The answer was no so I had to take 
+        the matter into my own hands.
+      </p>
+
+      <h3 id="how">How?</h3>
+      <p>Traditou intercepts the original subtitle files sent from the website servers, 
+        parses them and displays the original subtitles along with English subtitles on the bottom, with Google translate.</p>
+
+      <h3 id="why">Why Traditou?</h3>
+      <p>This extension can be used with the trifecta of French Canadian streaming websites: 
+        <a href="https://noovo.ca" target="_blank">Noovo.ca</a>, <a href="https://ici.tou.tv/" target="_blank">Tou.tv</a>, 
+        and <a href="https://video.telequebec.tv/" target="_blank">TeleQuebec</a>, 
+        with the goal of French language learning in mind.</p>
+      <p>Traditou not only matches words closely, it also transforms TV-style rolling captions 
+        (which are visually difficult to follow) into more readable streaming service style subtitles.</p> 
+      
+      <hr class="line">
+
+      <h3 id="tutorial">Tutorial</h3>
+      <h4>How to display both French and English subtitles: </h3> 
+      <ol type="1"> 
+        <li>Right click to select "Translate to English" or use Chrome's built-in Google translate icon on the top right to translate the page to English</li>
+        <li>Make sure Traditou is enabled.</li>
+        <li>TODO: for Telequebec, click translate on the bottom</li>
+      </ol>
+      <img src="images/right_click_translate_screenshot.png" style="height: 400px">
+      <img src="images/google_translate_screenshot.png" style="height: 200px">
+      <hr class="line">
+
+      <h4>Display only English subtitles</h4> 
+      <p>Disable Traditou but leave Google's auto-translation enabled.</p>
+      <hr class="line">
+
+      <h4>Display only French subtitles</h4> 
+      <p>Disable both Traditou and Google's auto-translation.</p>
+      </ol>
+
+      TODO: the styling of the subtitle boxes for macs are in accessibility settings, and have to restart chrome after. Add screenshots.
+      <hr class="line">
+
+      <h3 id="faq">FAQs</h3>
+      <ol>
+        <li>
+          <p class="question">The show that I want to watch is not on Noovo, Tou.tv, or TeleQuebec, will you support the website that I watch too?</p>
+          <p class="answer">If you are looking for support for Netflix or Amazon Prime, there are a few Chrome extensions are already do that. If the website that you use is not any of the above, you can send me an email so I can add support for the website that you watch. </p> 
+        </li>
+
+        <li>
+          <p class="question">Having trouble accessing the video contents because you are outside of Canada?</p>
+          <p class="answer">You can use a VPN to change your IP address in order to access Canadian content.</p>
+        </li>
+
+        <li>
+          <p class="question">I don't see any subtitles, what's wrong?</p>
+          <p class="answer">If the original video doesnt come with subtitles, no translated subtitles can be provided</p>
+        </li>
+
+        <li>
+          <p class="question">I use Traditou to translate to a language that's not English?</p>
+          <p class="answer">Yes. As long as Google Translate supports that language.</p>
+        </li>
+        <li>
+          <p class="question">The subtitles seem to flicker a lot. What should I do?</p>
+          <p class="answer">I recommend that you restart your browser.</p>
+        </li>
+      </ol>
+      <p id="support-me">
+      To support my work, you can leave a 5-star <a href="" target="_blank">review</a> for Traditou, and/or <a href="https://www.buymeacoffee.com/chuyunshen" target="_blank">buy me a coffee</a>.
+      To report bugs, please <a href="mailto:chuyunshen123@gmail.com">contact me</a>.
+      </p>
+      <div id="footer">
+        <div id="footer-icons">
+            <div>
+            Share Traditou with friends:
+            </div>
+            <a class="share-icon" href="https://www.facebook.com/sharer/sharer.php?u=https://xxx" target="_blank">
+                <i class="fa fa-facebook-square"></i>
+            </a>
+            <a class="share-icon" href="http://twitter.com/share?text=Start using Traditou to watch French Canadian videos with French & English subtitles. &url=https://chinesecalligrapher.com&hashtags=French,French Canadian,English,Bilingual,Noovo,Telequebec,TouTV,Radio-Canada,CBC" target="_blank">
+                <i class="fa fa-twitter"></i>
+            </a>
+            <a class="share-icon" href="https://www.reddit.com/submit?url=https://xxx" target="_blank">
+                <i class="fa fa-reddit"></i>
+            </a>
+        </div>
+    </div>
+    </div>
+  </body>
+</html>
