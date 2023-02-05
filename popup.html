@@ -8,93 +8,40 @@
     <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
-    
-    <style>
-      .onSwitch {
-        position: relative;
-        display: block;
-        width: 30px;
-        height: 17px;
-      }
-      
-      .onSwitch input { 
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-      
-      .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        -webkit-transition: .4s;
-        transition: .4s;
-      }
-      
-      .slider:before {
-        position: absolute;
-        content: "";
-        height: 13px;
-        width: 13px;
-        left: 2px;
-        bottom: 2px;
-        background-color: white;
-        -webkit-transition: .4s;
-        transition: .4s;
-      }
-      
-      input:checked + .slider {
-        background-color: #2196F3;
-      }
-      
-      input:focus + .slider {
-        box-shadow: 0 0 1px #2196F3;
-      }
-      
-      input:checked + .slider:before {
-        -webkit-transform: translateX(13px);
-        -ms-transform: translateX(13px);
-        transform: translateX(13px);
-      }
-      
-      /* Rounded sliders */
-      .slider.round {
-        border-radius: 17px;
-      }
-      
-      .slider.round:before {
-        border-radius: 50%;
-      }
-      </style>
-
-    <title style="font-family: ogg">Traditou</title>
+    <title>Traditou</title>
   <link href="href=https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200&display=swap" rel="stylesheet">
   </head>
-
-  <body style="height:400px; width: 300px; font-family: 'Noto Serif SC', serif; ">
-
-    <div style="font-size: large; display:block; margin: 0 auto; text-align: center; padding-top:15px">Traditou</div>
-    <img id="enable" style="cursor: pointer; width: 150px; display: block; margin: 0 auto; padding-top: 50px;" src='icons/leaf.png'></img>
-
-    <div id="enable-text" style="background-color: rgba(0, 0, 0, 0.1); border-radius: 4px; text-align: center; display: block; margin: 0 auto; width: fit-content; padding: 3%">
-      <div id="enabled-text" style="display: block">
-        <div>Affichage des sous-titres français et anglais.</div>
-        <div style="color: darkblue">Displaying both French and English subtitles.</div>
-      </div>
-      <div id="disabled-text" style="display: none">
-        <div>Affichage uniquement des sous-titres français.</div>
+  <body id="popup-body">
+    <h2 id="popup-title"><a id="title-url" href="" target="_blank">Traditou</a></h2>
+    <div class="radio-group-wrapper">
+      <div class='radio-group'>
+        <label class='radio-label'>
+            <input name="mode" type='radio' id='dual-mode' checked='checked'>
+            <span class='inner-label'>French + English subtitles</span>
+        </label>
+        <label class='radio-label'>
+            <input name="mode" type='radio' id='french-mode'>
+            <span class='inner-label'>French subtitles only (no rolling)</span>
+        </label>
+        <label class='radio-label'>
+            <input name="mode" type='radio' id='english-mode'>
+            <span class='inner-label'>English subtitles only</span>
+        </label>
+        <label class='radio-label'>
+            <input name="mode" type='radio' id='off'>
+            <span class='inner-label'>Turn Traditou off</span>
+        </label>
       </div>
     </div>
-    <a href="" target="_blank">Full Tutorial</a>
-      <div id="footer">
-        <div id="footer-icons">
-            <div>
-            Share Traditou with friends:
-            </div>
+
+    <div id="learn-more"><a id="learn-more-url" href="" target="_blank">Tutorial + FAQs</a></div>
+    <div>To support Traditou, you can review Traditou on the <a href="">Chrome Web Store</a> and/or 
+      buy me a <a href="https://www.buymeacoffee.com/chuyunshen">coffee</a>.
+
+    <div style="margin-top: 20px;">To report a bug, feel free to <a href="mailto:chuyunshen123@gmail.com">contact me</a>.  </div>
+
+      <div id="footer" >
+        <div id="footer-icons" style="margin: 0 auto; width: fit-content">
             <a class="share-icon" href="https://www.facebook.com/sharer/sharer.php?u=https://xxx" target="_blank">
                 <i class="fa fa-facebook-square"></i>
             </a>
@@ -104,24 +51,13 @@
             <a class="share-icon" href="https://www.reddit.com/submit?url=https://xxx" target="_blank">
                 <i class="fa fa-reddit"></i>
             </a>
-        </div>
-        <button id="contact">
-            <a href="mailto:chuyunshen123@gmail.com">
-            Contact me
+            <a class="share-icon" href="https://github.com/chuyunshen/traditou" target="_blank">
+                <i class="fa fa-github"></i>
             </a>
-        </button>
-    <a href="">Review Traditou.</a>
-    <a href="">Buy me a coffee.</a>
-
-    <!-- <div id="switchLabel">Enable Dual Subtitles</div>
-    <label class="onSwitch">
-      <input id="switchValue" type="checkbox">
-      <span class="slider round"></span>
-    </label> -->
-
+        </div>
+      </div>
 
   </body>
-  <script src="jquery-3.5.1.min.js"></script>
   <script src="popup.js"></script>
   
 </html>

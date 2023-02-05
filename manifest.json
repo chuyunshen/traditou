@@ -55,13 +55,16 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": [ "./fonts/Ogg-Roman.ttf" ],
+        "resources": [ "fonts/Ogg-Roman.ttf" ],
         "matches": [ "https://*/*" ]
       },
       {
         "resources": [ "content/utils.js" ],
         "matches": [ "https://*/*" ]
-
+      },
+      {
+        "resources": [ "fonts/Maler.ttf" ],
+        "matches": [ "https://*/*" ]
       }
     ],
     "action": {

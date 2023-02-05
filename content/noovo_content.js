@@ -1,12 +1,16 @@
 /* The subtitles of Noovo are also cable TV styled. A few words get rolled in and out each time. 
 */
 
-import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues} from "./utils";
+import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, 
+    addRule, parseVttCues, addEnglishToOriginalCues, toggleTextTracksNoovoAndToutv, getSavedMode} from "./utils";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var wrapper = createWrapper(document);
 var modified = false;
+
+var vttReceived = false;
+var mode = getSavedMode();
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -17,10 +21,12 @@ var prepareContainer = function(mutations, observer){
                 modifyVideoPlayer();
                 modified = true;
             }
-            text_track_container = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
-            if (text_track_container) {
-                text_track_container.style.display = 'none';
-            } 
+            if (mode !== "off") {
+                originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+                if (originalSubtitles) {
+                    originalSubtitles.style.display = 'none';
+                } 
+            }
             // this.disconnect();
         }
     }
@@ -32,24 +38,35 @@ window.observer = new MutationObserver(addEnglishToOriginalCuesWrapper);
 window.observer.observe(wrapper, {characterData: true, subtree: true});
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
-    const vtt = response["original_vtt"];
-    let cues = await parseVttCues(vtt);
-    cues = squashCuesNoovo(cues);
-    for (const cue of cues) {
-        if (processedCueIds.includes(cue.id)) continue;
-        if (!cueDict.hasOwnProperty(cue.id)) {
-            cue.isElementCreated = false;
-            cue.align = "center";
-            cue.position = "auto";
-            cue.line = "auto";
-            cueDict[cue.id] = cue;
+    if (response["type"] === "mode") {
+        mode = response["mode"];
+        originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
+    } else if (response["type"] === "subtitles") {
+        // Noovo tends to send two duplicates at the beginning of the video.
+        if (vttReceived) return true;
+        const vtt = response["original_vtt"];
+        vttReceived = true;
+        console.log(vtt);
+        let cues = await parseVttCues(vtt);
+        cues = squashCuesNoovo(cues);
+        console.log(cues);
+        for (const cue of cues) {
+            if (processedCueIds.includes(cue.id)) continue;
+            if (!cueDict.hasOwnProperty(cue.id)) {
+                cue.isElementCreated = false;
+                cue.align = "center";
+                cue.position = "auto";
+                cue.line = "auto";
+                cueDict[cue.id] = cue;
+            }
         }
-    }
 
-    createTranslateElements(cues, wrapper);
-    if (!getWrapper(document)) {
-        const video = document.getElementById("vidi_player_instance_1");
-        video.appendChild(wrapper);
+        createTranslateElements(cues, wrapper);
+        if (!getWrapper(document)) {
+            const videoWrapper = document.getElementById("vidi_player_instance_1");
+            videoWrapper.appendChild(wrapper);
+        }
     }
     return true;
 });
@@ -58,6 +75,8 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByClassName("jw-video jw-reset")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video);
+    originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+    toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
 }
 
 addRule("video::cue", {

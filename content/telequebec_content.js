@@ -2,21 +2,27 @@
 // Then translate them and stick them back into the video.
 
 
-import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues} from "./utils";
+import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule, 
+    parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, getSavedMode} from "./utils";
 
 // const utils = require("./utils");
 // cueDict is a dictionary of cues to be processed (just downloaded).
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
-
+var mode = getSavedMode();
+var cueIdCount = 0;
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
         if (mutation.target.tagName === "VIDEO") {
             let track =  document.getElementById("français");
-            // if (track) {track.remove()} // cannot remove the original track, because if it's removed, the network no longer sends vtt files.
-            if (track) {
+            if (track && mode !== 'off') {
                 track.track.mode = "hidden";
+            }
+            let timeDisplay =  document.getElementsByClassName("vjs-current-time vjs-time-control vjs-control")[0];
+            if (timeDisplay) {
+                timeDisplay.translate = "no";
+                timeDisplay.setAttribute("translate", "no");
             }
         }
     }
@@ -31,26 +37,33 @@ window.observer = new MutationObserver(addEnglishToOriginalCuesWrapper);
 window.observer.observe(wrapper, {characterData: true, subtree: true});
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
-    const vtt = response["original_vtt"];
-    let cues = await parseVttCues(vtt);
-    cues = squashCues(cues);
-    for (const cue of cues) {
-        if (processedCueIds.includes(cue.id)) continue;
-        if (!cueDict.hasOwnProperty(cue.id)) {
-            cue.isElementCreated = false;
-            cue.align = "center";
-            cue.position = "auto";
-            cue.line = "auto";
-            cueDict[cue.id] = cue;
+    if (response["type"] === "mode") {
+        mode = response["mode"];
+        toggleTextTracksTelequebec(mode, document.getElementById("player_html5_api"));
+    } else if (response["type"] === "subtitles") {
+        const vtt = response["original_vtt"]; 
+        let frenchCues = await parseVttCues(vtt);
+        [frenchCues, cueIdCount] = squashCues(frenchCues, cueIdCount);
+        for (const cue of frenchCues) {
+            if (processedCueIds.includes(cue.id)) continue;
+            if (!cueDict.hasOwnProperty(cue.id)) {
+                cue.isElementCreated = false;
+                cue.align = "center";
+                cue.position = "auto";
+                cue.line = "auto";
+                cueDict[cue.id] = cue;
+            }
         }
+        createTranslateElements(frenchCues, getWrapper(document));
     }
-    createTranslateElements(cues, getWrapper(document));
     return true;
 });
 
 
 function addEnglishToOriginalCuesWrapper(mutations, observer) {
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, document.getElementById("player_html5_api"));
+    const video = document.getElementById("player_html5_api");
+    [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video);
+    toggleTextTracksTelequebec(mode, video);
 }
 
 addRule("video::cue", {
