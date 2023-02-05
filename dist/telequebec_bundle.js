@@ -335,6 +335,11 @@
       (await chrome.storage.local.get(["mode"]))["mode"];
   }
 
+  function changeSubtitleFontSize() {
+      let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.04;
+      addRule("video::cue", { "font-size": `${newFontSize}px`});
+  }
+
   // telequebec uses brightcove to manage their videos, so first I need to find the vtt files from the networks requests/responses.
 
   // const utils = require("./utils");
@@ -356,6 +361,8 @@
                   timeDisplay.translate = "no";
                   timeDisplay.setAttribute("translate", "no");
               }
+              var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+              resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
           }
       }
   };

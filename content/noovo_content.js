@@ -1,8 +1,8 @@
 /* The subtitles of Noovo are also cable TV styled. A few words get rolled in and out each time. 
 */
 
-import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, 
-    addRule, parseVttCues, addEnglishToOriginalCues, toggleTextTracksNoovoAndToutv, getSavedMode} from "./utils";
+import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
+    addEnglishToOriginalCues, toggleTextTracksNoovoAndToutv, getSavedMode, changeSubtitleFontSize, styleVideoCues} from "./utils";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
@@ -27,7 +27,8 @@ var prepareContainer = function(mutations, observer){
                     originalSubtitles.style.display = 'none';
                 } 
             }
-            // this.disconnect();
+            var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+            resizeObserver.observe(document.getElementsByClassName("jw-media jw-reset")[0]);
         }
     }
 }
@@ -79,15 +80,6 @@ function addEnglishToOriginalCuesWrapper(mutations, observer) {
     toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
 }
 
-addRule("video::cue", {
-    /* this background setting works for PCs, but not apple products. 
-    For apple products, this setting is actually in settings->accessibility->captions
-    */
-    background: "transparent", 
-    color: "white",
-    "font-size": "18px",
-});
-
 function modifyVideoPlayer() {
     // make the video right-clickable
     var elements = document.getElementsByTagName("*");
@@ -96,3 +88,5 @@ function modifyVideoPlayer() {
         elements[id].oncontextmenu = null; }
     document.getElementsByClassName("VidiPlayerstyles__VideoAdContainer-sc-qzp347-20 gcTUvL")[0].classList.add("notranslate");
 }
+
+styleVideoCues();

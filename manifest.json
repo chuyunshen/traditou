@@ -65,6 +65,18 @@
       {
         "resources": [ "fonts/Maler.ttf" ],
         "matches": [ "https://*/*" ]
+      },
+      {
+        "resources": [ "fonts/Calendas_Plus.ttf" ],
+        "matches": [ "https://*/*" ]
+      },
+      {
+        "resources": [ "fonts/CrimsonText-Regular.ttf" ],
+        "matches": [ "https://*/*" ]
+      },
+      {
+        "resources": [ "fonts/CrimsonText-Bold.ttf" ],
+        "matches": [ "https://*/*" ]
       }
     ],
     "action": {

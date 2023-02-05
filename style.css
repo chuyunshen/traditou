@@ -8,9 +8,24 @@
     src: url("./fonts/Maler.ttf");
 }
 
+@font-face {
+    font-family: "calendas_plus";
+    src: url("./fonts/Calendas_Plus.ttf");
+}
+
+@font-face {
+    font-family: "crimson_text";
+    src: url("./fonts/CrimsonText-Regular.ttf");
+}
+
+@font-face {
+    font-family: "crimson_text_bold";
+    src: url("./fonts/CrimsonText-Bold.ttf");
+}
+
 #title {
     margin-top: 80px;
-    font-family: "ogg";
+    font-family: "maler";
     text-align: center;
 }
 
@@ -80,7 +95,7 @@ text-decoration: none;
 
 button {
 font-size: 14px;
-font-family: Noto Serif SC;
+/* font-family: Noto Serif SC; */
 padding: 5px;
 padding-left: 10px;
 padding-right: 10px;
@@ -115,20 +130,23 @@ select {
 
 h4 {
     text-align: center;
-    font-weight: bold;
+    font-family: "calendas_plus_bold";
 }
 
 .question {
-    font-weight: bold;
+    /* font-weight: bold; */
+    font-family: "crimson_text_bold";
 }
 
 
 
 #popup-body {
-    font-size: 15px;
+    font-size: 18px;
     height:480px; 
     width: 350px; 
-    font-family: 'Noto Serif SC', serif;
+    margin: 20px;
+    /* font-family: 'Noto Serif SC', serif; */
+    font-family: 'crimson_text', serif;
   }
   
   .radio-group-wrapper {
@@ -198,7 +216,7 @@ h4 {
 
 
   #popup-title {
-    font-size: large; 
+    font-size: 25px; 
     display: block; 
     margin: 0 auto; 
     text-align: center; 
@@ -206,6 +224,20 @@ h4 {
     font-family: "maler";
   }
 
+  #title-url {
+    text-decoration: none;
+  }
+
   #learn-more {
     margin-bottom: 30px;
+  }
+
+  #table-of-contents {
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  body {
+    font-family: "crimson_text", "serif";
+    font-size: 20px;
   }

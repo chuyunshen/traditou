@@ -1,5 +1,6 @@
 
-import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues, getSavedMode, toggleTextTracksNoovoAndToutv} from "./utils";
+import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues, 
+    getSavedMode, toggleTextTracksNoovoAndToutv, styleVideoCues} from "./utils";
 
 console.log("toutv")
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
@@ -9,6 +10,10 @@ var mode = getSavedMode();
 var wrapper = createWrapper(document);
 var modified = false;
 
+function changeSubtitleFontSize() {
+    let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
+    addRule("video::cue", { "font-size": `${newFontSize}px`});
+}
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
         if (mutation.target.className && 
@@ -18,7 +23,8 @@ var prepareContainer = function(mutations, observer){
                 modifyVideoPlayer();
                 modified = true;
             }
-            // document.getElementsByClassName("vjs-text-track-display")[0].style.display = "none";
+            var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+            resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
         }
     }
 }
@@ -29,7 +35,7 @@ window.observer = new MutationObserver(addEnglishToOriginalCuesWrapper);
 window.observer.observe(wrapper, {characterData: true, subtree: true});
 
 function numberCues(cues) {
-    let cueIdCount = 0
+    let cueIdCount = 0;
     for (const cue of cues) {
         cue.id = cueIdCount;
         cueIdCount++;
@@ -74,16 +80,6 @@ function addEnglishToOriginalCuesWrapper(mutations, observer) {
         toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
 }
 
-addRule("video::cue", {
-    /* this background setting works for PCs, but not apple products. 
-    For apple products, this setting is actually in settings->accessibility->captions
-    */
-    background: "transparent", 
-    color: "white",
-    "font-size": "18px",
-});
-
-
 function modifyVideoPlayer() {
 
     // make the video right-clickable
@@ -93,3 +89,5 @@ function modifyVideoPlayer() {
         elements[id].oncontextmenu = null; }
     // document.getElementsByClassName("vjs-controls-disabled")[0].classList.add("notranslate");
 }
+
+styleVideoCues();

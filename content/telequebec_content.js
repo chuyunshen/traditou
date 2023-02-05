@@ -3,7 +3,7 @@
 
 
 import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule, 
-    parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, getSavedMode} from "./utils";
+    parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, getSavedMode, changeSubtitleFontSize, styleVideoCues} from "./utils";
 
 // const utils = require("./utils");
 // cueDict is a dictionary of cues to be processed (just downloaded).
@@ -24,6 +24,8 @@ var prepareContainer = function(mutations, observer){
                 timeDisplay.translate = "no";
                 timeDisplay.setAttribute("translate", "no");
             }
+            var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+            resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
         }
     }
 }
@@ -66,11 +68,4 @@ function addEnglishToOriginalCuesWrapper(mutations, observer) {
     toggleTextTracksTelequebec(mode, video);
 }
 
-addRule("video::cue", {
-    /* this background setting works for PCs, but not apple products. 
-    For apple products, this setting is actually in settings->accessibility->captions
-    */
-    background: "transparent", 
-    color: "white",
-    "font-size": "18px",
-});
+styleVideoCues();

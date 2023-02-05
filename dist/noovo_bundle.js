@@ -354,6 +354,11 @@
       (await chrome.storage.local.get(["mode"]))["mode"];
   }
 
+  function changeSubtitleFontSize() {
+      let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.04;
+      addRule("video::cue", { "font-size": `${newFontSize}px`});
+  }
+
   /* The subtitles of Noovo are also cable TV styled. A few words get rolled in and out each time. 
   */
 
@@ -380,7 +385,8 @@
                       originalSubtitles.style.display = 'none';
                   } 
               }
-              // this.disconnect();
+              var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+              resizeObserver.observe(document.getElementsByClassName("jw-media jw-reset")[0]);
           }
       }
   };
@@ -438,7 +444,7 @@
       */
       background: "transparent", 
       color: "white",
-      "font-size": "18px",
+      "font-weight": "bold"
   });
 
   function modifyVideoPlayer() {

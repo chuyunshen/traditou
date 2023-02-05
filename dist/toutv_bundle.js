@@ -263,6 +263,10 @@
   var wrapper = createWrapper(document);
   var modified = false;
 
+  function changeSubtitleFontSize() {
+      let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
+      addRule("video::cue", { "font-size": `${newFontSize}px`});
+  }
   var prepareContainer = function(mutations, observer){
       for (const mutation of mutations){
           if (mutation.target.className && 
@@ -272,7 +276,8 @@
                   modifyVideoPlayer();
                   modified = true;
               }
-              // document.getElementsByClassName("vjs-text-track-display")[0].style.display = "none";
+              var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+              resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
           }
       }
   };
