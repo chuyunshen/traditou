@@ -23,5 +23,5 @@ async function syncMode() {
 }
 syncMode();
 
-document.getElementById("learn-more-url").href = chrome.runtime.getURL("info.html");
+document.getElementById("learn-more-url").href = chrome.runtime.getURL("info.html") + "#tutorial";
 document.getElementById("title-url").href = chrome.runtime.getURL("info.html");

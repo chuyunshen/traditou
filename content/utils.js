@@ -483,3 +483,19 @@ export async function getSavedMode() {
     var mode = (await chrome.storage.local.get(["mode"]))["mode"];
     if (!mode) mode = "dual-mode";
 }
+
+export function changeSubtitleFontSize() {
+    let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.04;
+    addRule("video::cue", { "font-size": `${newFontSize}px`});
+}
+
+export function styleVideoCues() {
+    addRule("video::cue", {
+        /* this background setting works for PCs, but not apple products. 
+        For apple products, this setting is actually in settings->accessibility->captions
+        */
+        background: "transparent", 
+        color: "white",
+        "font-weight": "bold"
+    });
+}

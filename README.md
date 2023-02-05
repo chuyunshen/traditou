@@ -7,12 +7,11 @@
 5. write tests for squashCues
 6. Look into differentiate colours
 8. Move up the subtitles box when the hover menu is on
-9. Make sure it can return to only French subtitles easily, either return to original, or better parsed version
-10. Can have a mode thats English only
 12. Translate the page to french
 13. Test on Chrominium and Edge.
 14. Adjust subtitle font sizes based on video/screen sizes, adjust html text sizes
 15. Dark mode
+16. Tooltips for select options on the popup
 
 technical challenges:
 1. all the sites are implemented differently
