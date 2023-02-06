@@ -53,55 +53,55 @@
   }
   
 a {
-color: black;
+    color: black;
 }
 
 .hover-grey:hover {
-color: grey;
+    color: grey;
 }
 
 a:visited {
-color: black;
+    color: black;
 }
 
 button a:hover {
-color: white !important;
+    color: white !important;
 }
 
 button > a {
-text-decoration: none;
+    text-decoration: none;
 }
 
 .fa {
-font-size: 24px;
+    font-size: 24px;
 }
 
 .line {
-height: 1px;
-border: none;
-background-color: #e8e8e8;
-width: 100%;
-margin-top: 20px;
-margin-bottom: 20px;
+    height: 1px;
+    border: none;
+    background-color: #e8e8e8;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 button a:hover {
-color: white !important;
+    color: white !important;
 }
 
 button > a {
-text-decoration: none;
+    text-decoration: none;
 }
 
 button {
-font-size: 14px;
-/* font-family: Noto Serif SC; */
-padding: 5px;
-padding-left: 10px;
-padding-right: 10px;
-border-radius: 10px;
-border: 1px grey solid;
-background-color: white;
+    font-size: 14px;
+    /* font-family: Noto Serif SC; */
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 10px;
+    border: 1px grey solid;
+    background-color: white;
 }
 
 button:hover:enabled {
@@ -128,9 +128,13 @@ select {
     border-radius: 5px;
 }
 
+h3 {
+    font-family: "maler";
+}
+
 h4 {
     text-align: center;
-    font-family: "calendas_plus_bold";
+    font-family: "crimson_text_bold";
 }
 
 .question {
@@ -146,7 +150,7 @@ h4 {
     width: 350px; 
     margin: 20px;
     /* font-family: 'Noto Serif SC', serif; */
-    font-family: 'crimson_text', serif;
+    font-family: 'Crimson Text', serif;
   }
   
   .radio-group-wrapper {
@@ -238,6 +242,44 @@ h4 {
   }
 
   body {
-    font-family: "crimson_text", "serif";
+    font-family: "Crimson Text", "serif";
     font-size: 20px;
   }
+
+  .image-wrapper {
+    margin: 0 auto;
+    width: fit-content;
+    text-align: center;
+  }
+
+  #jump-to-tutorial {
+    border-radius: 5px;
+    outline-width: 1px;
+    outline-style: solid;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  #jump-to-tutorial > a {
+    text-decoration: none;
+  }
+
+  #main-image {
+    height: 500px; 
+    margin: 40px; 
+    margin-bottom: 70px;;
+    border-radius: 5px; 
+    outline-style: solid; 
+    outline-width: 1px; 
+    outline-color: grey; 
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 22px 70px 4px rgba(0,0,0,0.56), 0 0 0 1px rgba(0, 0, 0, 0.0); 
+    filter: grayscale(20%)
+  }
+
+.text-wrapper {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
