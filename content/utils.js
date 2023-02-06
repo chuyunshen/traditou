@@ -482,6 +482,7 @@ export function toggleTextTracksNoovoAndToutv(mode, video, originalSubtitles) {
 export async function getSavedMode() {
     var mode = (await chrome.storage.local.get(["mode"]))["mode"];
     if (!mode) mode = "dual-mode";
+    return mode;
 }
 
 export function changeSubtitleFontSize() {

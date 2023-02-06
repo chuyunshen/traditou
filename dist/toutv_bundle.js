@@ -252,13 +252,26 @@
   }
 
   async function getSavedMode() {
-      (await chrome.storage.local.get(["mode"]))["mode"];
+      var mode = (await chrome.storage.local.get(["mode"]))["mode"];
+      if (!mode) mode = "dual-mode";
+      return mode;
+  }
+
+  function styleVideoCues() {
+      addRule("video::cue", {
+          /* this background setting works for PCs, but not apple products. 
+          For apple products, this setting is actually in settings->accessibility->captions
+          */
+          background: "transparent", 
+          color: "white",
+          "font-weight": "bold"
+      });
   }
 
   console.log("toutv");
   var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
   var processedCueIds = [];
-  var mode = getSavedMode();
+  var mode;
 
   var wrapper = createWrapper(document);
   var modified = false;
@@ -327,21 +340,12 @@
   });
 
 
-  function addEnglishToOriginalCuesWrapper(mutations, observer) {
+  async function addEnglishToOriginalCuesWrapper(mutations, observer) {
       const video = document.getElementsByTagName("VIDEO")[0];
       [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video);
-          toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+      mode = await getSavedMode();
+      toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
   }
-
-  addRule("video::cue", {
-      /* this background setting works for PCs, but not apple products. 
-      For apple products, this setting is actually in settings->accessibility->captions
-      */
-      background: "transparent", 
-      color: "white",
-      "font-size": "18px",
-  });
-
 
   function modifyVideoPlayer() {
 
@@ -352,5 +356,7 @@
           elements[id].oncontextmenu = null; }
       // document.getElementsByClassName("vjs-controls-disabled")[0].classList.add("notranslate");
   }
+
+  styleVideoCues();
 
 }));

@@ -10,7 +10,7 @@ var wrapper = createWrapper(document);
 var modified = false;
 
 var vttReceived = false;
-var mode = getSavedMode();
+var mode;
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -73,10 +73,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 });
 
 
-function addEnglishToOriginalCuesWrapper(mutations, observer) {
+async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByClassName("jw-video jw-reset")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video);
     originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+    mode = await getSavedMode();
     toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
 }
 

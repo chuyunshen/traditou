@@ -332,12 +332,25 @@
   }
 
   async function getSavedMode() {
-      (await chrome.storage.local.get(["mode"]))["mode"];
+      var mode = (await chrome.storage.local.get(["mode"]))["mode"];
+      if (!mode) mode = "dual-mode";
+      return mode;
   }
 
   function changeSubtitleFontSize() {
       let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.04;
       addRule("video::cue", { "font-size": `${newFontSize}px`});
+  }
+
+  function styleVideoCues() {
+      addRule("video::cue", {
+          /* this background setting works for PCs, but not apple products. 
+          For apple products, this setting is actually in settings->accessibility->captions
+          */
+          background: "transparent", 
+          color: "white",
+          "font-weight": "bold"
+      });
   }
 
   // telequebec uses brightcove to manage their videos, so first I need to find the vtt files from the networks requests/responses.
@@ -346,7 +359,7 @@
   // cueDict is a dictionary of cues to be processed (just downloaded).
   var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
   var processedCueIds = [];
-  var mode = getSavedMode();
+  var mode;
   var cueIdCount = 0;
 
   var prepareContainer = function(mutations, observer){
@@ -399,19 +412,13 @@
   });
 
 
-  function addEnglishToOriginalCuesWrapper(mutations, observer) {
+  async function addEnglishToOriginalCuesWrapper(mutations, observer) {
       const video = document.getElementById("player_html5_api");
       [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video);
+      mode = await getSavedMode();
       toggleTextTracksTelequebec(mode, video);
   }
 
-  addRule("video::cue", {
-      /* this background setting works for PCs, but not apple products. 
-      For apple products, this setting is actually in settings->accessibility->captions
-      */
-      background: "transparent", 
-      color: "white",
-      "font-size": "18px",
-  });
+  styleVideoCues();
 
 }));

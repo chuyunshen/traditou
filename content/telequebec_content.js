@@ -9,7 +9,7 @@ import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule,
 // cueDict is a dictionary of cues to be processed (just downloaded).
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
-var mode = getSavedMode();
+var mode;
 var cueIdCount = 0;
 
 var prepareContainer = function(mutations, observer){
@@ -62,9 +62,10 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 });
 
 
-function addEnglishToOriginalCuesWrapper(mutations, observer) {
+async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementById("player_html5_api");
     [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video);
+    mode = await getSavedMode();
     toggleTextTracksTelequebec(mode, video);
 }
 
