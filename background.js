@@ -7,7 +7,6 @@ chrome.webRequest.onCompleted.addListener(
       if (!details.initiator.includes("chrome-extension")) {
         fetch(details.url, {headers: {"from_traditou": "true"}}).then(res => res.text()).then( res =>
           { 
-            console.log(res);
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
               chrome.tabs.sendMessage(tabs[0].id, {
                 "type": "subtitles", "original_vtt": res});

@@ -486,7 +486,7 @@ export async function getSavedMode() {
 }
 
 export function changeSubtitleFontSize() {
-    let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.04;
+    let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.035;
     addRule("video::cue", { "font-size": `${newFontSize}px`});
 }
 
