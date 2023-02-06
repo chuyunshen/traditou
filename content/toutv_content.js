@@ -5,7 +5,7 @@ import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCue
 console.log("toutv")
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
-var mode = getSavedMode();
+var mode;
 
 var wrapper = createWrapper(document);
 var modified = false;
@@ -74,10 +74,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 });
 
 
-function addEnglishToOriginalCuesWrapper(mutations, observer) {
+async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("VIDEO")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video);
-        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+    mode = await getSavedMode();
+    toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
 }
 
 function modifyVideoPlayer() {

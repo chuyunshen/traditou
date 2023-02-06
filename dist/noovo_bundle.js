@@ -351,12 +351,25 @@
   }
 
   async function getSavedMode() {
-      (await chrome.storage.local.get(["mode"]))["mode"];
+      var mode = (await chrome.storage.local.get(["mode"]))["mode"];
+      if (!mode) mode = "dual-mode";
+      return mode;
   }
 
   function changeSubtitleFontSize() {
       let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.04;
       addRule("video::cue", { "font-size": `${newFontSize}px`});
+  }
+
+  function styleVideoCues() {
+      addRule("video::cue", {
+          /* this background setting works for PCs, but not apple products. 
+          For apple products, this setting is actually in settings->accessibility->captions
+          */
+          background: "transparent", 
+          color: "white",
+          "font-weight": "bold"
+      });
   }
 
   /* The subtitles of Noovo are also cable TV styled. A few words get rolled in and out each time. 
@@ -368,7 +381,7 @@
   var modified = false;
 
   var vttReceived = false;
-  var mode = getSavedMode();
+  var mode;
 
   var prepareContainer = function(mutations, observer){
       for (const mutation of mutations){
@@ -431,21 +444,13 @@
   });
 
 
-  function addEnglishToOriginalCuesWrapper(mutations, observer) {
+  async function addEnglishToOriginalCuesWrapper(mutations, observer) {
       const video = document.getElementsByClassName("jw-video jw-reset")[0];
       [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video);
       originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+      mode = await getSavedMode();
       toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
   }
-
-  addRule("video::cue", {
-      /* this background setting works for PCs, but not apple products. 
-      For apple products, this setting is actually in settings->accessibility->captions
-      */
-      background: "transparent", 
-      color: "white",
-      "font-weight": "bold"
-  });
 
   function modifyVideoPlayer() {
       // make the video right-clickable
@@ -455,5 +460,7 @@
           elements[id].oncontextmenu = null; }
       document.getElementsByClassName("VidiPlayerstyles__VideoAdContainer-sc-qzp347-20 gcTUvL")[0].classList.add("notranslate");
   }
+
+  styleVideoCues();
 
 }));
