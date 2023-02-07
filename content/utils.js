@@ -200,6 +200,7 @@ export function createWrapper(document) {
         wrapper.id = "invisible-translate-wrapper";
         wrapper.style.position = "relative";
         wrapper.style.zIndex = "100";
+        wrapper.style.opacity = 0;
     }
     return wrapper;
 }
@@ -223,7 +224,7 @@ export function createTranslateElements(cues, wrapper) {
         d.style.width = 0;
         d.style.overflow = "hidden";
         d.style.fontSize = 0;
-        d.translate = "yes";  // check if telequebec still works
+        d.translate = "yes";
         wrapper.appendChild(d);
         cue.isElementCreated = true;
     }

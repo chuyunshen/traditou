@@ -102,6 +102,7 @@
           wrapper.id = "invisible-translate-wrapper";
           wrapper.style.position = "relative";
           wrapper.style.zIndex = "100";
+          wrapper.style.opacity = 0;
       }
       return wrapper;
   }
@@ -125,7 +126,7 @@
           d.style.width = 0;
           d.style.overflow = "hidden";
           d.style.fontSize = 0;
-          d.translate = "yes";  // check if telequebec still works
+          d.translate = "yes";
           wrapper.appendChild(d);
           cue.isElementCreated = true;
       }
@@ -355,12 +356,12 @@
 
   // telequebec uses brightcove to manage their videos, so first I need to find the vtt files from the networks requests/responses.
 
-  // const utils = require("./utils");
   // cueDict is a dictionary of cues to be processed (just downloaded).
   var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
   var processedCueIds = [];
   var mode;
   var cueIdCount = 0;
+  var fetchedUrls = new Set();
 
   var prepareContainer = function(mutations, observer){
       for (const mutation of mutations){
@@ -393,6 +394,11 @@
           mode = response["mode"];
           toggleTextTracksTelequebec(mode, document.getElementById("player_html5_api"));
       } else if (response["type"] === "subtitles") {
+          const url = response["url"];
+          if (fetchedUrls.has(url)) {
+              return true;
+          }
+          fetchedUrls.add(url);
           const vtt = response["original_vtt"]; 
           let frenchCues = await parseVttCues(vtt);
           [frenchCues, cueIdCount] = squashCues(frenchCues, cueIdCount);

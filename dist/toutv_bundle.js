@@ -9,6 +9,7 @@
           wrapper.id = "invisible-translate-wrapper";
           wrapper.style.position = "relative";
           wrapper.style.zIndex = "100";
+          wrapper.style.opacity = 0;
       }
       return wrapper;
   }
@@ -32,7 +33,7 @@
           d.style.width = 0;
           d.style.overflow = "hidden";
           d.style.fontSize = 0;
-          d.translate = "yes";  // check if telequebec still works
+          d.translate = "yes";
           wrapper.appendChild(d);
           cue.isElementCreated = true;
       }
@@ -275,6 +276,7 @@
 
   var wrapper = createWrapper(document);
   var modified = false;
+  var fetchedUrls = new Set();
 
   function changeSubtitleFontSize() {
       let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
@@ -315,6 +317,11 @@
           mode = response["mode"];
           toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
       } else if (response["type"] === "subtitles") {
+          const url = response["url"];
+          if (fetchedUrls.has(url)) {
+              return true;
+          }
+          fetchedUrls.add(url);
           const vtt = response["original_vtt"];
           let cues = await parseVttCues(vtt);
           cues = numberCues(cues);
@@ -354,7 +361,6 @@
       for(var id = 0; id < elements.length; ++id) { 
           elements[id].addEventListener('contextmenu', function(e) {e.stopPropagation();},true);
           elements[id].oncontextmenu = null; }
-      // document.getElementsByClassName("vjs-controls-disabled")[0].classList.add("notranslate");
   }
 
   styleVideoCues();

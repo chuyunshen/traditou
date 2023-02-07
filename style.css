@@ -36,7 +36,7 @@
 #footer {
     margin: 0 auto;
     display: block;
-    margin-top: 40px;
+    margin-top: 25px;
     margin-bottom: 40px;
     text-align: center;
     white-space: nowrap;
@@ -145,7 +145,7 @@ h4 {
 
 
 #popup-body {
-    font-size: 18px;
+    font-size: 16px;
     height:480px; 
     width: 350px; 
     margin: 20px;
@@ -156,6 +156,8 @@ h4 {
   .radio-group-wrapper {
     display: flex;
     min-height: 200px;
+    margin-top: 10px;
+    margin-bottom: 10px;
   }
   
   .radio-group {
@@ -180,7 +182,7 @@ h4 {
   .radio-label {
     position: relative;
     display: inline-block;
-    margin: 10px;
+    margin: 8px;
   }
   @media (max-width: 48em) {
     .radio-label {
@@ -195,29 +197,32 @@ h4 {
   .radio-label .inner-label {
     position: relative;
     display: inline-block;
-    padding-left: 40px;
   }
-  .radio-label .inner-label:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    border-bottom: 1px dashed rgba(100, 100, 100, 1);
-    width: 30px;
-    transition: border-bottom 0.5s ease;
+  
+ .radio-label input:hover ~ .inner-label {
+    background-color: black;
+    color: white;
+    cursor: pointer; 
+    outline-color: black;
   }
-  .radio-label input:focus ~ .inner-label:before {
-    border-bottom: 1px dashed rgba(100, 100, 100, 1);
-  }
-  .radio-label input:checked ~ .inner-label:after {
-    content: "✓";
-    /* color: #fff; */
-    position: absolute;
-    font-size: 12px;
-    left: 12px;
-    top: 1px;
+  .radio-label input:checked ~ .inner-label {
+    background-color: black;
+    color: white;  
+    outline-color: black;
   }
 
+ .inner-label {
+    border-radius: 5px;
+    outline-width: 1px;
+    outline-style: solid;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    outline-color: grey;
+    width: 170px;
+    text-align: center;
+  }
 
   #popup-title {
     font-size: 25px; 
@@ -241,32 +246,32 @@ h4 {
     width: fit-content;
   }
 
-  body {
-    font-family: "Crimson Text", "serif";
-    font-size: 20px;
-  }
+body {
+  font-family: "Crimson Text", "serif";
+  font-size: 20px;
+}
 
-  .image-wrapper {
-    margin: 0 auto;
-    width: fit-content;
-    text-align: center;
-  }
+.image-wrapper {
+  margin: 0 auto;
+  width: fit-content;
+  text-align: center;
+}
 
-  #jump-to-tutorial {
-    border-radius: 5px;
-    outline-width: 1px;
-    outline-style: solid;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
+#jump-to-tutorial {
+  border-radius: 5px;
+  outline-width: 1px;
+  outline-style: solid;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
 
-  #jump-to-tutorial > a {
-    text-decoration: none;
-  }
+#jump-to-tutorial > a {
+  text-decoration: none;
+}
 
-  #main-image {
+#main-image {
     height: 500px; 
     margin: 40px; 
     margin-bottom: 70px;;
@@ -276,10 +281,67 @@ h4 {
     outline-color: grey; 
     box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 22px 70px 4px rgba(0,0,0,0.56), 0 0 0 1px rgba(0, 0, 0, 0.0); 
     filter: grayscale(20%)
-  }
+}
 
 .text-wrapper {
     margin-top: 50px;
     margin-bottom: 50px;
 }
 
+.highlight {
+    width:fit-content; 
+    background-color: #E3DED7; 
+    border-radius: 5px; 
+    padding-left: 10px; 
+    padding-right: 10px; 
+    padding-top: 3px; 
+    padding-bottom: 3px;
+}
+
+.popup-highlight {
+    background: linear-gradient(120deg, #E3DED7 0%, #E3DED7 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 50%;
+    background-position: 0 90%;
+    width: fit-content;
+    border-radius: 5px;
+}
+
+a {
+  /* color: #E3DED7; */
+  text-decoration-color: #E3DED7;
+  text-decoration-thickness: 4px;
+}
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+visibility: hidden;
+background-color: white;
+color: black;
+text-align: center;
+padding: 5px 5px;
+border: 1px black solid;
+border-radius: 10px;
+/* top: -5px;
+left: 70%; */
+font-size: 10px;
+min-width: 110px;
+
+/* Position the tooltip text - see examples below! */
+position: absolute;
+z-index: 1;
+
+top: -5px;
+right: 105%;
+}
+
+.tooltiptext {
+white-space: normal;
+}
