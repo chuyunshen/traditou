@@ -21,8 +21,7 @@ rollup -c
 
 ### TODO list
 
-- Fix the bug where a line is shown multiple times (downloaded multiple times)
-- Test on Chrominium and Edge
+- Test on Chromium
 - Make it compatible with TV5Unis
 - Fix starttime endtime problem
 - write tests for squashCues
@@ -32,6 +31,8 @@ rollup -c
 - Dark mode for the popup panel and the info page
 - Tooltips for select options on the popup
 
+### Testing steps before new release:
+- Test on Chrome, Edge, and Chromium
 
 
 **Soon on the Chrome Web Store**

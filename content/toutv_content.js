@@ -9,6 +9,7 @@ var mode;
 
 var wrapper = createWrapper(document);
 var modified = false;
+var fetchedUrls = new Set();
 
 function changeSubtitleFontSize() {
     let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
@@ -49,6 +50,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         mode = response["mode"];
         toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
     } else if (response["type"] === "subtitles") {
+        const url = response["url"];
+        if (fetchedUrls.has(url)) {
+            return true;
+        }
+        fetchedUrls.add(url);
         const vtt = response["original_vtt"];
         let cues = await parseVttCues(vtt);
         cues = numberCues(cues);
@@ -88,7 +94,6 @@ function modifyVideoPlayer() {
     for(var id = 0; id < elements.length; ++id) { 
         elements[id].addEventListener('contextmenu', function(e) {e.stopPropagation()},true);
         elements[id].oncontextmenu = null; }
-    // document.getElementsByClassName("vjs-controls-disabled")[0].classList.add("notranslate");
 }
 
 styleVideoCues();

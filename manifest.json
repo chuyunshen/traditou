@@ -3,15 +3,8 @@
     "manifest_version": 3,
   
     "name": "Traditou",
-    "description": "Helps you learn Canadian French with the trifecta of French Canadian streaming websites: Noovo, Tou.tv, and TeleQuebec.  Uses your browser's Auto-Translator to ensure direct translations.",
+    "description": "Provides auto-translated dual subtitles on French Canadian streaming websites: Noovo, Tou.tv, and TeleQuebec.",
     "version": "1.0.0",
-    "declarative_net_request": {
-      "rule_resources": [{
-        "id": "ruleset_1",
-        "enabled": true,
-        "path": "rules.json"
-      }]},
-
     "icons": {
       "128":"icons/icon128.png",
       "48":"icons/icon48.png",
@@ -27,8 +20,6 @@
     "permissions": [
         "storage",
         "tabs",
-        "declarativeNetRequest",
-        "declarativeNetRequestFeedback",
         "webRequest"
       ],
     "host_permissions": [

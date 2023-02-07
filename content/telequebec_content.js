@@ -5,12 +5,12 @@
 import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule, 
     parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, getSavedMode, changeSubtitleFontSize, styleVideoCues} from "./utils";
 
-// const utils = require("./utils");
 // cueDict is a dictionary of cues to be processed (just downloaded).
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var mode;
 var cueIdCount = 0;
+var fetchedUrls = new Set();
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -43,6 +43,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         mode = response["mode"];
         toggleTextTracksTelequebec(mode, document.getElementById("player_html5_api"));
     } else if (response["type"] === "subtitles") {
+        const url = response["url"];
+        if (fetchedUrls.has(url)) {
+            return true;
+        }
+        fetchedUrls.add(url);
         const vtt = response["original_vtt"]; 
         let frenchCues = await parseVttCues(vtt);
         [frenchCues, cueIdCount] = squashCues(frenchCues, cueIdCount);

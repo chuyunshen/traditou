@@ -9,8 +9,8 @@ var processedCueIds = [];
 var wrapper = createWrapper(document);
 var modified = false;
 
-var vttReceived = false;
 var mode;
+var fetchedUrls = new Set();
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -45,7 +45,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
     } else if (response["type"] === "subtitles") {
         // Noovo tends to send two duplicates at the beginning of the video.
-        if (vttReceived) return true;
+        const url = response["url"];
+        if (fetchedUrls.has(url)) {
+            return true;
+        }
+        fetchedUrls.add(url);
         const vtt = response["original_vtt"];
         vttReceived = true;
         console.log(vtt);
@@ -87,7 +91,6 @@ function modifyVideoPlayer() {
     for(var id = 0; id < elements.length; ++id) { 
         elements[id].addEventListener('contextmenu', function(e) {e.stopPropagation()},true);
         elements[id].oncontextmenu = null; }
-    document.getElementsByClassName("VidiPlayerstyles__VideoAdContainer-sc-qzp347-20 gcTUvL")[0].classList.add("notranslate");
 }
 
 styleVideoCues();
