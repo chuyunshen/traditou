@@ -2,7 +2,9 @@
 */
 
 import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
-    addEnglishToOriginalCues, toggleTextTracksNoovoAndToutv, getSavedMode, changeSubtitleFontSize, styleVideoCues} from "./utils";
+    addEnglishToOriginalCues, toggleTextTracksNoovoAndToutv, getSavedMode, changeSubtitleFontSize, 
+    styleVideoCues, adjustSubtitlePosition} from "./utils";
+import {moveSubtitlesUpBy} from "./config";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
@@ -11,6 +13,7 @@ var modified = false;
 
 var mode;
 var fetchedUrls = new Set();
+var subtitleMovedUp = null;
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -27,16 +30,21 @@ var prepareContainer = function(mutations, observer){
                     originalSubtitles.style.display = 'none';
                 } 
             }
+            // resize font based on screen size
             var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
             resizeObserver.observe(document.getElementsByClassName("jw-media jw-reset")[0]);
+
+            subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
+            subtitlePositionObserver.observe(document.getElementById("vidi_player_instance_1"), 
+                                              {attributes: true, attributeFilter: ["class"]});
         }
     }
 }
-window.initial_observer = new MutationObserver(prepareContainer);
-window.initial_observer.observe(document.documentElement, {childList:true, subtree:true});
+videoReadyObserver = new MutationObserver(prepareContainer);
+videoReadyObserver.observe(document.documentElement, {childList:true, subtree:true});
 
-window.observer = new MutationObserver(addEnglishToOriginalCuesWrapper);
-window.observer.observe(wrapper, {characterData: true, subtree: true});
+translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
+translationObserver.observe(wrapper, {characterData: true, subtree: true});
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
@@ -52,17 +60,19 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         fetchedUrls.add(url);
         const vtt = response["original_vtt"];
         vttReceived = true;
-        console.log(vtt);
         let cues = await parseVttCues(vtt);
         cues = squashCuesNoovo(cues);
-        console.log(cues);
         for (const cue of cues) {
             if (processedCueIds.includes(cue.id)) continue;
             if (!cueDict.hasOwnProperty(cue.id)) {
-                cue.isElementCreated = false;
                 cue.align = "center";
                 cue.position = "auto";
-                cue.line = "auto";
+                if (subtitleMovedUp) {
+                    cue.line = moveSubtitlesUpBy["noovo"];
+                } else {
+                    cue.line = "auto";
+                }
+                cue.snapToLines = false;
                 cueDict[cue.id] = cue;
             }
         }
@@ -94,3 +104,16 @@ function modifyVideoPlayer() {
 }
 
 styleVideoCues();
+
+function adjustSubtitlePositionWrapper(mutations, observer) {
+    const mutation = mutations[mutations.length - 1];
+    if (!mutation.target.className.includes("jw-flag-user-inactive")) {
+        subtitleMovedUp = true;
+        adjustSubtitlePosition(moveSubtitlesUpBy["noovo"]);
+
+    } else if (mutation.target.className.includes("jw-flag-user-inactive")) {
+        if (document.getElementsByTagName("VIDEO")[0].paused) return;
+        subtitleMovedUp = false;
+        adjustSubtitlePosition("auto");
+    }
+}

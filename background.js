@@ -1,4 +1,3 @@
-console.log("blah");
 chrome.webRequest.onCompleted.addListener(
   function(details) {
     if ((details.initiator === "https://video.telequebec.tv" && details.url.includes("segment") && details.url.includes("vtt")) ||

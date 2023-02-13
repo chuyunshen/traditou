@@ -15,8 +15,8 @@ var prepareContainer = function(mutations, observer){
         }
     }
 }
-window.initial_observer = new MutationObserver(prepareContainer);
-window.initial_observer.observe(document.documentElement, {childList:true, subtree:true});
+videoReadyObserver = new MutationObserver(prepareContainer);
+videoReadyObserver.observe(document.documentElement, {childList:true, subtree:true});
 
 function modifyVideoPlayer() {
 
@@ -83,8 +83,8 @@ function modifyVideoPlayer() {
             }
         }
     };
-    window.observer = new MutationObserver(manipulateSubtitles);
-    window.observer.observe(video, {characterData: true, childList: true, subtree: true});
+    translationObserver = new MutationObserver(manipulateSubtitles);
+    translationObserver.observe(video, {characterData: true, childList: true, subtree: true});
 }
 
 // caption_row is the video wrapper

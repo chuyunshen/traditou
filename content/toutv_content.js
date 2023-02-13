@@ -1,8 +1,8 @@
 
-import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues, 
-    getSavedMode, toggleTextTracksNoovoAndToutv, styleVideoCues} from "./utils";
+import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues,
+    getSavedMode, toggleTextTracksNoovoAndToutv, styleVideoCues, adjustSubtitlePosition} from "./utils";
+import {moveSubtitlesUpBy} from "./config";
 
-console.log("toutv")
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var mode;
@@ -10,6 +10,7 @@ var mode;
 var wrapper = createWrapper(document);
 var modified = false;
 var fetchedUrls = new Set();
+var subtitleMovedUp = null;
 
 function changeSubtitleFontSize() {
     let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
@@ -26,14 +27,19 @@ var prepareContainer = function(mutations, observer){
             }
             var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
             resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
+
+
+            subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
+            subtitlePositionObserver.observe(document.getElementById("vjs_video_1"), 
+                                              {attributes: true, attributeFilter: ["class"]});
         }
     }
 }
-window.initial_observer = new MutationObserver(prepareContainer);
-window.initial_observer.observe(document.documentElement, {childList:true, subtree:true});
+videoReadyObserver = new MutationObserver(prepareContainer);
+videoReadyObserver.observe(document.documentElement, {childList:true, subtree:true});
 
-window.observer = new MutationObserver(addEnglishToOriginalCuesWrapper);
-window.observer.observe(wrapper, {characterData: true, subtree: true});
+translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
+translationObserver.observe(wrapper, {characterData: true, subtree: true});
 
 function numberCues(cues) {
     let cueIdCount = 0;
@@ -58,14 +64,17 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         const vtt = response["original_vtt"];
         let cues = await parseVttCues(vtt);
         cues = numberCues(cues);
-        console.log(cues);
         for (const cue of cues) {
             if (processedCueIds.includes(cue.id)) continue;
             if (!cueDict.hasOwnProperty(cue.id)) {
-                cue.isElementCreated = false;
                 cue.align = "center";
                 cue.position = "auto";
-                cue.line = "auto";
+                if (subtitleMovedUp) {
+                    cue.line = moveSubtitlesUpBy["toutv"];
+                } else {
+                    cue.line = "auto";
+                }
+                cue.snapToLines = false;
                 cueDict[cue.id] = cue;
             }
         }
@@ -97,3 +106,16 @@ function modifyVideoPlayer() {
 }
 
 styleVideoCues();
+
+function adjustSubtitlePositionWrapper(mutations, observer) {
+    const mutation = mutations[mutations.length - 1];
+    if (mutation.target.className.includes("vjs-user-active")) {
+        subtitleMovedUp = true;
+        adjustSubtitlePosition(moveSubtitlesUpBy["toutv"]);
+
+    } else if (mutation.target.className.includes("vjs-user-inactive")) {
+        if (document.getElementsByTagName("VIDEO")[0].paused) return;
+        subtitleMovedUp = false;
+        adjustSubtitlePosition("auto");
+    }
+}
