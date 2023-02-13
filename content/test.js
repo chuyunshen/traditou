@@ -3,9 +3,7 @@ async function doit() {
     // let vtt = await fetch("https://pe-fa-vp01a.9c9media.com/playlist/4427628/133995772/vtt/00000000/086e5356a774354d/manifest.vtt")
     let vtt = await fetch("https://rcavstaticstreaming.akamaized.net/stc/c78debe5-c668-46c7-9aeb-cd8b20fd5f88/src_acoeurbattant_s01e01.vtt");
     vtt = await vtt.text();
-    console.log(vtt)
     let cues = await parseVttCues(vtt);
-    console.log(cues);
     // cues = squashCuesNoovo(cues);
 }
 

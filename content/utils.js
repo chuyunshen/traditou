@@ -1,3 +1,4 @@
+import {moveSubtitlesUpBy} from "./config";
 
 /* telequebec does rolling cues, which is very difficult to read. From what I could gather, the cues look like the following:
 cue #1: start-time: t1, end-time: t2
@@ -222,6 +223,8 @@ export function createTranslateElements(cues, wrapper) {
         d.style.opacity = 0;
         d.style.height = 0;
         d.style.width = 0;
+        // parent position relative and child position absolute -> take up no space.
+        d.style.position = "absolute";  
         d.style.overflow = "hidden";
         d.style.fontSize = 0;
         d.translate = "yes";
@@ -328,7 +331,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video) 
             if (frenchLine === englishLine) {
                 // if the french didnt get translated yet, dont show double french
                 cue.bilingualLines.push(frenchLine);
-                console.log("The text hasnt been translated yet")
+                console.log("Google translation in progress.")
                 notYetTranslatedCueDict[cue.id] = cue;
             } else {
                 let bilingualLine = frenchLine + "\n" + englishLine;
@@ -351,7 +354,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video) 
                 theCue = new VTTCue(cue.startTime, cue.endTime, "");
                 theCue.align = "center";
                 theCue.position = "auto";
-                theCue.line = "auto";
+                theCue.line = moveSubtitlesUpBy[host];
                 theCue.id = cue.id;
             }
 
@@ -500,4 +503,14 @@ export function styleVideoCues() {
         color: "white",
         "font-weight": "bold"
     });
+}
+
+// spaceFrom Bottom determines how far the subtitles are from the bottom of the video
+export function adjustSubtitlePosition(spaceFromBottom) {
+    let textTracks = document.getElementsByTagName("VIDEO")[0].textTracks;
+    for (let textTrackIndex of [...Array(textTracks.length).keys()]) {
+        for (let cueIndex in textTracks[textTrackIndex].cues) {
+            textTracks[textTrackIndex].cues[cueIndex].line = spaceFromBottom;
+        }
+    }
 }

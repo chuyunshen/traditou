@@ -3,7 +3,9 @@
 
 
 import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule, 
-    parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, getSavedMode, changeSubtitleFontSize, styleVideoCues} from "./utils";
+    parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, 
+    getSavedMode, changeSubtitleFontSize, styleVideoCues, adjustSubtitlePosition} from "./utils";
+import {moveSubtitlesUpBy} from "./config";
 
 // cueDict is a dictionary of cues to be processed (just downloaded).
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
@@ -11,6 +13,7 @@ var processedCueIds = [];
 var mode;
 var cueIdCount = 0;
 var fetchedUrls = new Set();
+var userActive = null;
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -26,17 +29,21 @@ var prepareContainer = function(mutations, observer){
             }
             var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
             resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
+
+            subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
+            subtitlePositionObserver.observe(document.getElementsByClassName("beacon-js video-js-custom")[0], 
+                                              {attributes: true, attributeFilter: ["class"]});
         }
     }
 }
-window.initial_observer = new MutationObserver(prepareContainer);
-window.initial_observer.observe(document.documentElement, {characterData: true, childList:true, subtree:true});
+videoReadyObserver = new MutationObserver(prepareContainer);
+videoReadyObserver.observe(document.documentElement, {characterData: true, childList:true, subtree:true});
 
 
 let wrapper = createWrapper(document);
 document.body.appendChild(wrapper);
-window.observer = new MutationObserver(addEnglishToOriginalCuesWrapper);
-window.observer.observe(wrapper, {characterData: true, subtree: true});
+translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
+translationObserver.observe(wrapper, {characterData: true, subtree: true});
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
@@ -57,7 +64,12 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
                 cue.isElementCreated = false;
                 cue.align = "center";
                 cue.position = "auto";
-                cue.line = "auto";
+                if (userActive) {
+                    cue.line = moveSubtitlesUpBy["telequebec"];
+                } else {
+                    cue.line = "auto";
+                }
+                cue.snapToLines = false;
                 cueDict[cue.id] = cue;
             }
         }
@@ -75,3 +87,15 @@ async function addEnglishToOriginalCuesWrapper(mutations, observer) {
 }
 
 styleVideoCues();
+
+function adjustSubtitlePositionWrapper(mutations, observer) {
+    const mutation = mutations[mutations.length - 1];
+    if (mutation.target.className.includes("vjs-user-active") && (userActive === null || !userActive)) {
+        userActive = true;
+        adjustSubtitlePosition(moveSubtitlesUpBy["telequebec"]);
+
+    } else if (mutation.target.className.includes("vjs-user-inactive") && (userActive === null || userActive)) {
+        userActive = false;
+        adjustSubtitlePosition("auto");
+    }
+}

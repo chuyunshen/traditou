@@ -272,8 +272,9 @@ body {
 }
 
 #main-image {
-    height: 500px; 
+    width: 800px; 
     margin: 40px; 
+    margin-top: 70px;;
     margin-bottom: 70px;;
     border-radius: 5px; 
     outline-style: solid; 
@@ -344,4 +345,26 @@ right: 105%;
 
 .tooltiptext {
 white-space: normal;
+}
+
+.wrapper {
+    margin: 0 auto; 
+    display: block; 
+    width: 50%;
+}
+
+#main-gif {
+  width: 1000px;
+}
+
+@media (max-width: 1000px){
+  .wrapper{
+    width: 70%;
+  }
+  #main-image {
+    width: 90%;
+  }
+  #main-gif{
+    width: 100%;
+  }
 }
