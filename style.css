@@ -1,26 +1,6 @@
 @font-face {
-    font-family: "ogg";
-    src: url("./fonts/Ogg-Roman.ttf");
-}
-
-@font-face {
     font-family: "maler";
     src: url("./fonts/Maler.ttf");
-}
-
-@font-face {
-    font-family: "calendas_plus";
-    src: url("./fonts/Calendas_Plus.ttf");
-}
-
-@font-face {
-    font-family: "crimson_text";
-    src: url("./fonts/CrimsonText-Regular.ttf");
-}
-
-@font-face {
-    font-family: "crimson_text_bold";
-    src: url("./fonts/CrimsonText-Bold.ttf");
 }
 
 #title {
@@ -134,12 +114,13 @@ h3 {
 
 h4 {
     text-align: center;
-    font-family: "crimson_text_bold";
+    font-family: "Crimson Text";
+    font-weight: bold;
 }
 
 .question {
-    /* font-weight: bold; */
-    font-family: "crimson_text_bold";
+    font-weight: bold;
+    font-family: "Crimson Text";
 }
 
 

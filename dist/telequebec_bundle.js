@@ -41,7 +41,7 @@
         let displayed = [];
         for (let [index, cue] of cues.entries()) {
             if (rollingLines.length === 0) {
-                startTime = cue.startTime;
+                // startTime = cue.startTime;
                 for (const cueLine of cue.parsedLines) {
                     if (!displayed.includes(cueLine)) {
                         rollingLines.push(cueLine);
@@ -59,11 +59,22 @@
                     if (!startTime) {
                         startTime = cue.startTime;
                     }
-                    let newCue = new VTTCue(startTime, cue.endTime, unionedLines.join(" "));
+                    let endTime;
+                    if ((index + 1) < cues.length) {
+                        nextCue = cues[index+1];
+                        if (nextCue.parsedLines.includes(unionedLines[unionedLines.length - 1])) {
+                            endTime = nextCue.endTime;
+                        } else {
+                            endTime = cue.endTime;
+                        }
+                    } else {
+                        endTime = cue.endTime;
+                    }
+                    let newCue = new VTTCue(startTime, endTime, unionedLines.join(" "));
                     newCue.id = cueIdCount;
                     cueIdCount++;
                     squashedCues.push(newCue);
-                    startTime = null;
+                    startTime = endTime;
                     rollingLines = [];
                     displayed = unionedLines;
                     unionedLines = [];

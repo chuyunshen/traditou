@@ -30,8 +30,6 @@ rm -rf traditou_chrome && rm -rf traditou.zip && cp -r traditou traditou_chrome 
 
 ### TODO list
 
-- Fix starttime endtime problem on telequebec
-- Move up the subtitles box when the hover menu is on
 - Make the subtitle button always enabled, so subtitles will be sent from the server
 - Test on Chromium
 - Make it compatible with TV5Unis
