@@ -13,7 +13,7 @@ var processedCueIds = [];
 var mode;
 var cueIdCount = 0;
 var fetchedUrls = new Set();
-var userActive = null;
+var subtitleMovedUp = null;
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -62,14 +62,6 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
             if (processedCueIds.includes(cue.id)) continue;
             if (!cueDict.hasOwnProperty(cue.id)) {
                 cue.isElementCreated = false;
-                cue.align = "center";
-                cue.position = "auto";
-                if (userActive) {
-                    cue.line = moveSubtitlesUpBy["telequebec"];
-                } else {
-                    cue.line = "auto";
-                }
-                cue.snapToLines = false;
                 cueDict[cue.id] = cue;
             }
         }
@@ -81,7 +73,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementById("player_html5_api");
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video);
+    [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video, subtitleMovedUp);
     mode = await getSavedMode();
     toggleTextTracksTelequebec(mode, video);
 }
@@ -90,12 +82,12 @@ styleVideoCues();
 
 function adjustSubtitlePositionWrapper(mutations, observer) {
     const mutation = mutations[mutations.length - 1];
-    if (mutation.target.className.includes("vjs-user-active") && (userActive === null || !userActive)) {
-        userActive = true;
+    if (mutation.target.className.includes("vjs-user-active") && (subtitleMovedUp === null || !subtitleMovedUp)) {
+        subtitleMovedUp = true;
         adjustSubtitlePosition(moveSubtitlesUpBy["telequebec"]);
 
-    } else if (mutation.target.className.includes("vjs-user-inactive") && (userActive === null || userActive)) {
-        userActive = false;
+    } else if (mutation.target.className.includes("vjs-user-inactive") && (subtitleMovedUp === null || subtitleMovedUp)) {
+        subtitleMovedUp = false;
         adjustSubtitlePosition("auto");
     }
 }

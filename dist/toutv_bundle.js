@@ -128,7 +128,7 @@
 
 
     // TODO: change the name of this.
-    function addEnglishToOriginalCues(host, cueDict, processedCueIds, video) {
+    function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, subtitleMovedUp) {
         let notYetTranslatedCueDict = {};
         for (let cueId in cueDict) {
             let cue = cueDict[cueId];
@@ -159,7 +159,7 @@
             }
         }
 
-        function appendCues(track, type) {
+        function appendCues(track, type, host, subtitleMovedUp) {
             for (const cueId in cueDict) {
                 let cue = cueDict[cueId];
                 var theCue = track.cues.getCueById(cueId);
@@ -168,7 +168,11 @@
                     theCue = new VTTCue(cue.startTime, cue.endTime, "");
                     theCue.align = "center";
                     theCue.position = "auto";
-                    theCue.line = moveSubtitlesUpBy[host];
+                    if (subtitleMovedUp) {
+                        theCue.line = moveSubtitlesUpBy[host];
+                    } else {
+                        theCue.line = "auto";
+                    }
                     theCue.id = cue.id;
                 }
 
@@ -183,25 +187,25 @@
             }
         }
 
-        function createTrack(video, type) {
+        function createTrack(video, type, host, subtitleMovedUp) {
             track = video.addTextTrack("captions", type);
             // bilingualTrack.id = "bilingual-track";   // the id is a readonly attribute
-            appendCues(track, type);
+            appendCues(track, type, host, subtitleMovedUp);
             return track;
         }
         if ((host === "telequebec" && video.textTracks.length == 2) || 
             ((host === "noovo" || host === "toutv") && video.textTracks.length == 0)) {
             for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
-                let track = createTrack(video, mode);
+                let track = createTrack(video, mode, host);
                 video.append(track);
             }
         } else {
             let bilingualTrack = video.textTracks[video.textTracks.length - 3];
-            appendCues(bilingualTrack, "dual-mode");
+            appendCues(bilingualTrack, "dual-mode", host, subtitleMovedUp);
             let englishTrack = video.textTracks[video.textTracks.length - 2];
-            appendCues(englishTrack, "english-mode");
+            appendCues(englishTrack, "english-mode", host, subtitleMovedUp);
             let frenchTrack = video.textTracks[video.textTracks.length - 1];
-            appendCues(frenchTrack, "french-mode");
+            appendCues(frenchTrack, "french-mode", host, subtitleMovedUp);
         }
 
 
@@ -351,14 +355,6 @@
             for (const cue of cues) {
                 if (processedCueIds.includes(cue.id)) continue;
                 if (!cueDict.hasOwnProperty(cue.id)) {
-                    cue.align = "center";
-                    cue.position = "auto";
-                    if (subtitleMovedUp) {
-                        cue.line = moveSubtitlesUpBy["toutv"];
-                    } else {
-                        cue.line = "auto";
-                    }
-                    cue.snapToLines = false;
                     cueDict[cue.id] = cue;
                 }
             }
@@ -375,7 +371,7 @@
 
     async function addEnglishToOriginalCuesWrapper(mutations, observer) {
         const video = document.getElementsByTagName("VIDEO")[0];
-        [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video);
+        [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video, subtitleMovedUp);
         mode = await getSavedMode();
         toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
     }

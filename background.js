@@ -32,6 +32,6 @@ chrome.webRequest.onCompleted.addListener(
 //First Run, store default settings
 chrome.runtime.onInstalled.addListener(function(details){
   if(details.reason == "install"){
-    chrome.tabs.create({ url: chrome.runtime.getURL("info.html") + "#tutorial" });
+    chrome.tabs.create({ url: chrome.runtime.getURL("info.html")});
   }
 });

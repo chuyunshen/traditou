@@ -67,14 +67,6 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         for (const cue of cues) {
             if (processedCueIds.includes(cue.id)) continue;
             if (!cueDict.hasOwnProperty(cue.id)) {
-                cue.align = "center";
-                cue.position = "auto";
-                if (subtitleMovedUp) {
-                    cue.line = moveSubtitlesUpBy["toutv"];
-                } else {
-                    cue.line = "auto";
-                }
-                cue.snapToLines = false;
                 cueDict[cue.id] = cue;
             }
         }
@@ -91,7 +83,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("VIDEO")[0];
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video);
+    [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video, subtitleMovedUp);
     mode = await getSavedMode();
     toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
 }
