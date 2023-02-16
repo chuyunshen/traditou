@@ -65,14 +65,6 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         for (const cue of cues) {
             if (processedCueIds.includes(cue.id)) continue;
             if (!cueDict.hasOwnProperty(cue.id)) {
-                cue.align = "center";
-                cue.position = "auto";
-                if (subtitleMovedUp) {
-                    cue.line = moveSubtitlesUpBy["noovo"];
-                } else {
-                    cue.line = "auto";
-                }
-                cue.snapToLines = false;
                 cueDict[cue.id] = cue;
             }
         }
@@ -89,7 +81,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByClassName("jw-video jw-reset")[0];
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video);
+    [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video, subtitleMovedUp);
     originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
     mode = await getSavedMode();
     toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);

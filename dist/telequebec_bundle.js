@@ -41,7 +41,7 @@
         let displayed = [];
         for (let [index, cue] of cues.entries()) {
             if (rollingLines.length === 0) {
-                // startTime = cue.startTime;
+                startTime = cue.startTime;
                 for (const cueLine of cue.parsedLines) {
                     if (!displayed.includes(cueLine)) {
                         rollingLines.push(cueLine);
@@ -59,22 +59,11 @@
                     if (!startTime) {
                         startTime = cue.startTime;
                     }
-                    let endTime;
-                    if ((index + 1) < cues.length) {
-                        nextCue = cues[index+1];
-                        if (nextCue.parsedLines.includes(unionedLines[unionedLines.length - 1])) {
-                            endTime = nextCue.endTime;
-                        } else {
-                            endTime = cue.endTime;
-                        }
-                    } else {
-                        endTime = cue.endTime;
-                    }
-                    let newCue = new VTTCue(startTime, endTime, unionedLines.join(" "));
+                    let newCue = new VTTCue(startTime, cue.endTime, unionedLines.join(" "));
                     newCue.id = cueIdCount;
                     cueIdCount++;
                     squashedCues.push(newCue);
-                    startTime = endTime;
+                    startTime = null;
                     rollingLines = [];
                     displayed = unionedLines;
                     unionedLines = [];
@@ -232,7 +221,7 @@
 
 
     // TODO: change the name of this.
-    function addEnglishToOriginalCues(host, cueDict, processedCueIds, video) {
+    function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, subtitleMovedUp) {
         let notYetTranslatedCueDict = {};
         for (let cueId in cueDict) {
             let cue = cueDict[cueId];
@@ -263,7 +252,7 @@
             }
         }
 
-        function appendCues(track, type) {
+        function appendCues(track, type, host, subtitleMovedUp) {
             for (const cueId in cueDict) {
                 let cue = cueDict[cueId];
                 var theCue = track.cues.getCueById(cueId);
@@ -272,7 +261,11 @@
                     theCue = new VTTCue(cue.startTime, cue.endTime, "");
                     theCue.align = "center";
                     theCue.position = "auto";
-                    theCue.line = moveSubtitlesUpBy[host];
+                    if (subtitleMovedUp) {
+                        theCue.line = moveSubtitlesUpBy[host];
+                    } else {
+                        theCue.line = "auto";
+                    }
                     theCue.id = cue.id;
                 }
 
@@ -287,25 +280,25 @@
             }
         }
 
-        function createTrack(video, type) {
+        function createTrack(video, type, host, subtitleMovedUp) {
             track = video.addTextTrack("captions", type);
             // bilingualTrack.id = "bilingual-track";   // the id is a readonly attribute
-            appendCues(track, type);
+            appendCues(track, type, host, subtitleMovedUp);
             return track;
         }
         if ((host === "telequebec" && video.textTracks.length == 2) || 
             ((host === "noovo" || host === "toutv") && video.textTracks.length == 0)) {
             for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
-                let track = createTrack(video, mode);
+                let track = createTrack(video, mode, host);
                 video.append(track);
             }
         } else {
             let bilingualTrack = video.textTracks[video.textTracks.length - 3];
-            appendCues(bilingualTrack, "dual-mode");
+            appendCues(bilingualTrack, "dual-mode", host, subtitleMovedUp);
             let englishTrack = video.textTracks[video.textTracks.length - 2];
-            appendCues(englishTrack, "english-mode");
+            appendCues(englishTrack, "english-mode", host, subtitleMovedUp);
             let frenchTrack = video.textTracks[video.textTracks.length - 1];
-            appendCues(frenchTrack, "french-mode");
+            appendCues(frenchTrack, "french-mode", host, subtitleMovedUp);
         }
 
 
@@ -391,7 +384,7 @@
     var mode;
     var cueIdCount = 0;
     var fetchedUrls = new Set();
-    var userActive = null;
+    var subtitleMovedUp = null;
 
     var prepareContainer = function(mutations, observer){
         for (const mutation of mutations){
@@ -440,14 +433,6 @@
                 if (processedCueIds.includes(cue.id)) continue;
                 if (!cueDict.hasOwnProperty(cue.id)) {
                     cue.isElementCreated = false;
-                    cue.align = "center";
-                    cue.position = "auto";
-                    if (userActive) {
-                        cue.line = moveSubtitlesUpBy["telequebec"];
-                    } else {
-                        cue.line = "auto";
-                    }
-                    cue.snapToLines = false;
                     cueDict[cue.id] = cue;
                 }
             }
@@ -459,7 +444,7 @@
 
     async function addEnglishToOriginalCuesWrapper(mutations, observer) {
         const video = document.getElementById("player_html5_api");
-        [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video);
+        [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video, subtitleMovedUp);
         mode = await getSavedMode();
         toggleTextTracksTelequebec(mode, video);
     }
@@ -468,12 +453,12 @@
 
     function adjustSubtitlePositionWrapper(mutations, observer) {
         const mutation = mutations[mutations.length - 1];
-        if (mutation.target.className.includes("vjs-user-active") && (userActive === null || !userActive)) {
-            userActive = true;
+        if (mutation.target.className.includes("vjs-user-active") && (subtitleMovedUp === null || !subtitleMovedUp)) {
+            subtitleMovedUp = true;
             adjustSubtitlePosition(moveSubtitlesUpBy["telequebec"]);
 
-        } else if (mutation.target.className.includes("vjs-user-inactive") && (userActive === null || userActive)) {
-            userActive = false;
+        } else if (mutation.target.className.includes("vjs-user-inactive") && (subtitleMovedUp === null || subtitleMovedUp)) {
+            subtitleMovedUp = false;
             adjustSubtitlePosition("auto");
         }
     }
