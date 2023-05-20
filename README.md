@@ -30,6 +30,8 @@ rm -rf traditou_chrome && rm -rf traditou.zip && cp -r traditou traditou_chrome 
 
 ### TODO list
 
+- Add instructions for Windows and Linux for adjusting subtitle appearances in settings
+- Add comments to code
 - Make the subtitle button always enabled, so subtitles will be sent from the server
 - Test on Chromium
 - Make it compatible with TV5Unis

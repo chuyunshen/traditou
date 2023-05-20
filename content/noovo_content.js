@@ -14,29 +14,42 @@ var modified = false;
 var mode;
 var fetchedUrls = new Set();
 var subtitleMovedUp = null;
+var textContainerReady = false;
+var resizeObserverRegistered = false;
+var subtitlePositionObserverRegistered = false;
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
         if (mutation.target.className && 
             typeof mutation.target.className === "string" && 
-            mutation.target.className.includes("jw-captions")) {
+            mutation.target.className.includes("shaka-text-container")) {
             if (!modified) {
                 modifyVideoPlayer();
                 modified = true;
             }
             if (mode !== "off") {
-                originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+                originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
                 if (originalSubtitles) {
                     originalSubtitles.style.display = 'none';
                 } 
             }
-            // resize font based on screen size
-            var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
-            resizeObserver.observe(document.getElementsByClassName("jw-media jw-reset")[0]);
+        }
+    }
+    if (!resizeObserverRegistered) {
+        // resize font based on screen size
+        var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+        if (document.getElementsByTagName("video")[0]) {
+            resizeObserver.observe(document.getElementsByTagName("video")[0]);
+            resizeObserverRegistered = true;
+        }
+    }
 
-            subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-            subtitlePositionObserver.observe(document.getElementById("vidi_player_instance_1"), 
-                                              {attributes: true, attributeFilter: ["class"]});
+    if (!subtitlePositionObserverRegistered) {
+        subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
+        let node = document.getElementsByClassName("jasper-player-overlay__container--vXxZG")[0]
+        if (node) {
+            subtitlePositionObserver.observe( node, {attributes: true});
+            subtitlePositionObserverRegistered = true;
         }
     }
 }
@@ -49,7 +62,7 @@ translationObserver.observe(wrapper, {characterData: true, subtree: true});
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
         mode = response["mode"];
-        originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+        originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
         toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
     } else if (response["type"] === "subtitles") {
         // Noovo tends to send two duplicates at the beginning of the video.
@@ -71,7 +84,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
         createTranslateElements(cues, wrapper);
         if (!getWrapper(document)) {
-            const videoWrapper = document.getElementById("vidi_player_instance_1");
+            const videoWrapper = document.getElementsByClassName("jasper-player-root__container--W1IfG jasper-player-root__aspect-ratio--KEs6u")[0];
             videoWrapper.appendChild(wrapper);
         }
     }
@@ -80,11 +93,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
-    const video = document.getElementsByClassName("jw-video jw-reset")[0];
+    const video = document.getElementsByTagName("video")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video, subtitleMovedUp);
-    originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+    originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
     mode = await getSavedMode();
-    toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
+    toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("video")[0], originalSubtitles);
 }
 
 function modifyVideoPlayer() {
@@ -99,12 +112,15 @@ styleVideoCues();
 
 function adjustSubtitlePositionWrapper(mutations, observer) {
     const mutation = mutations[mutations.length - 1];
-    if (!mutation.target.className.includes("jw-flag-user-inactive")) {
+
+    // user active
+    if (!mutation.target.className.includes("jasper-player-overlay__hidden--xbqt7")) {
         subtitleMovedUp = true;
         adjustSubtitlePosition(moveSubtitlesUpBy["noovo"]);
 
-    } else if (mutation.target.className.includes("jw-flag-user-inactive")) {
-        if (document.getElementsByTagName("VIDEO")[0].paused) return;
+    // user inactive
+    } else {
+        if (document.getElementsByTagName("video")[0].paused) return;
         subtitleMovedUp = false;
         adjustSubtitlePosition("auto");
     }
