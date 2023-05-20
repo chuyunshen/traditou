@@ -33,6 +33,10 @@ var prepareContainer = function(mutations, observer){
             subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
             subtitlePositionObserver.observe(document.getElementsByClassName("beacon-js video-js-custom")[0], 
                                               {attributes: true, attributeFilter: ["class"]});
+            
+            // if (document.getElementById("invisible-translate-wrapper")) {
+            //     addEnglishToOriginalCuesWrapper();
+            // }
         }
     }
 }
@@ -43,7 +47,7 @@ videoReadyObserver.observe(document.documentElement, {characterData: true, child
 let wrapper = createWrapper(document);
 document.body.appendChild(wrapper);
 translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
-translationObserver.observe(wrapper, {characterData: true, subtree: true});
+translationObserver.observe(wrapper, {characterData: true, subtree: true, childList: true, attributes: true});
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {

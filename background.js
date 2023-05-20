@@ -11,7 +11,8 @@ chrome.webRequest.onCompleted.addListener(
                 "type": "subtitles", 
                 "original_vtt": res,
                 "url": details.url});
-              })
+              });
+            console.log(res)
           })
       }
     }
@@ -34,4 +35,7 @@ chrome.runtime.onInstalled.addListener(function(details){
   if(details.reason == "install"){
     chrome.tabs.create({ url: chrome.runtime.getURL("info.html")});
   }
+  if(details.reason == "update"){
+    chrome.tabs.create({ url: chrome.runtime.getURL("update.html") });
+    }
 });

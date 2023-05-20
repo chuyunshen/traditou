@@ -3,7 +3,7 @@
     factory();
 })((function () {
     const moveSubtitlesUpBy = {
-        "noovo": -5,
+        "noovo": -6,
         "telequebec": -5,
         "toutv": -4
     };
@@ -261,7 +261,10 @@
         function appendCues(track, type, host, subtitleMovedUp) {
             for (const cueId in cueDict) {
                 let cue = cueDict[cueId];
-                var theCue = track.cues.getCueById(cueId);
+                var theCue;
+                if (track.cues) {
+                    theCue = track.cues.getCueById(cueId);
+                }
                 if (!theCue) {
                     // make new cue
                     theCue = new VTTCue(cue.startTime, cue.endTime, "");
@@ -273,6 +276,7 @@
                         theCue.line = "auto";
                     }
                     theCue.id = cue.id;
+                    track.addCue(theCue);
                 }
 
                 if (type === "dual-mode") {
@@ -282,28 +286,36 @@
                 } else if (type === "french-mode") {
                     theCue.text = cue.frenchLines.join("\n");
                 }
-                track.addCue(theCue);
             }
         }
 
         function createTrack(video, type, host, subtitleMovedUp) {
             track = video.addTextTrack("captions", type);
-            // bilingualTrack.id = "bilingual-track";   // the id is a readonly attribute
             appendCues(track, type, host, subtitleMovedUp);
             return track;
         }
-        if ((host === "telequebec" && video.textTracks.length == 2) || 
-            ((host === "noovo" || host === "toutv") && video.textTracks.length == 0)) {
+
+        function getTrackByLabel(video, label) {
+            for (const track of video.textTracks) {
+                if (track.label === label) {
+                    return track;
+                }
+            }
+        }
+        if ((host === "telequebec" && video.textTracks.length === 0) ||
+            (host === "telequebec" && video.textTracks.length > 0 && video.textTracks[video.textTracks.length - 1].label !== "french-mode") || 
+            (host === "toutv" && video.textTracks.length == 0) ||
+            (host === "noovo" && video.textTracks.length <= 1)) {
             for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
                 let track = createTrack(video, mode, host);
                 video.append(track);
             }
         } else {
-            let bilingualTrack = video.textTracks[video.textTracks.length - 3];
+            let bilingualTrack = getTrackByLabel(video, "dual-mode");
             appendCues(bilingualTrack, "dual-mode", host, subtitleMovedUp);
-            let englishTrack = video.textTracks[video.textTracks.length - 2];
+            let englishTrack = getTrackByLabel(video, "english-mode");
             appendCues(englishTrack, "english-mode", host, subtitleMovedUp);
-            let frenchTrack = video.textTracks[video.textTracks.length - 1];
+            let frenchTrack = getTrackByLabel(video, "french-mode");
             appendCues(frenchTrack, "french-mode", host, subtitleMovedUp);
         }
 
@@ -387,6 +399,7 @@
 
     // spaceFrom Bottom determines how far the subtitles are from the bottom of the video
     function adjustSubtitlePosition(spaceFromBottom) {
+        if (!document.getElementsByTagName("VIDEO")[0]) return;
         let textTracks = document.getElementsByTagName("VIDEO")[0].textTracks;
         for (let textTrackIndex of [...Array(textTracks.length).keys()]) {
             for (let cueIndex in textTracks[textTrackIndex].cues) {
@@ -406,29 +419,41 @@
     var mode;
     var fetchedUrls = new Set();
     var subtitleMovedUp = null;
+    var resizeObserverRegistered = false;
+    var subtitlePositionObserverRegistered = false;
 
     var prepareContainer = function(mutations, observer){
         for (const mutation of mutations){
             if (mutation.target.className && 
                 typeof mutation.target.className === "string" && 
-                mutation.target.className.includes("jw-captions")) {
+                mutation.target.className.includes("shaka-text-container")) {
                 if (!modified) {
                     modifyVideoPlayer();
                     modified = true;
                 }
                 if (mode !== "off") {
-                    originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+                    originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
                     if (originalSubtitles) {
                         originalSubtitles.style.display = 'none';
                     } 
                 }
-                // resize font based on screen size
-                var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
-                resizeObserver.observe(document.getElementsByClassName("jw-media jw-reset")[0]);
+            }
+        }
+        if (!resizeObserverRegistered) {
+            // resize font based on screen size
+            var resizeObserver = new ResizeObserver(changeSubtitleFontSize);
+            if (document.getElementsByTagName("video")[0]) {
+                resizeObserver.observe(document.getElementsByTagName("video")[0]);
+                resizeObserverRegistered = true;
+            }
+        }
 
-                subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-                subtitlePositionObserver.observe(document.getElementById("vidi_player_instance_1"), 
-                                                  {attributes: true, attributeFilter: ["class"]});
+        if (!subtitlePositionObserverRegistered) {
+            subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
+            let node = document.getElementsByClassName("jasper-player-overlay__container--vXxZG")[0];
+            if (node) {
+                subtitlePositionObserver.observe( node, {attributes: true});
+                subtitlePositionObserverRegistered = true;
             }
         }
     };
@@ -441,7 +466,7 @@
     chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         if (response["type"] === "mode") {
             mode = response["mode"];
-            originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+            originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
             toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
         } else if (response["type"] === "subtitles") {
             // Noovo tends to send two duplicates at the beginning of the video.
@@ -463,7 +488,7 @@
 
             createTranslateElements(cues, wrapper);
             if (!getWrapper(document)) {
-                const videoWrapper = document.getElementById("vidi_player_instance_1");
+                const videoWrapper = document.getElementsByClassName("jasper-player-root__container--W1IfG jasper-player-root__aspect-ratio--KEs6u")[0];
                 videoWrapper.appendChild(wrapper);
             }
         }
@@ -472,11 +497,11 @@
 
 
     async function addEnglishToOriginalCuesWrapper(mutations, observer) {
-        const video = document.getElementsByClassName("jw-video jw-reset")[0];
+        const video = document.getElementsByTagName("video")[0];
         [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video, subtitleMovedUp);
-        originalSubtitles = document.getElementsByClassName("jw-text-track-container jw-reset")[0];
+        originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
         mode = await getSavedMode();
-        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
+        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("video")[0], originalSubtitles);
     }
 
     function modifyVideoPlayer() {
@@ -491,12 +516,15 @@
 
     function adjustSubtitlePositionWrapper(mutations, observer) {
         const mutation = mutations[mutations.length - 1];
-        if (!mutation.target.className.includes("jw-flag-user-inactive")) {
+
+        // user active
+        if (!mutation.target.className.includes("jasper-player-overlay__hidden--xbqt7")) {
             subtitleMovedUp = true;
             adjustSubtitlePosition(moveSubtitlesUpBy["noovo"]);
 
-        } else if (mutation.target.className.includes("jw-flag-user-inactive")) {
-            if (document.getElementsByTagName("VIDEO")[0].paused) return;
+        // user inactive
+        } else {
+            if (document.getElementsByTagName("video")[0].paused) return;
             subtitleMovedUp = false;
             adjustSubtitlePosition("auto");
         }

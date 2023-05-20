@@ -3,7 +3,7 @@
     factory();
 })((function () {
     const moveSubtitlesUpBy = {
-        "noovo": -5,
+        "noovo": -6,
         "telequebec": -5,
         "toutv": -4
     };
@@ -255,7 +255,10 @@
         function appendCues(track, type, host, subtitleMovedUp) {
             for (const cueId in cueDict) {
                 let cue = cueDict[cueId];
-                var theCue = track.cues.getCueById(cueId);
+                var theCue;
+                if (track.cues) {
+                    theCue = track.cues.getCueById(cueId);
+                }
                 if (!theCue) {
                     // make new cue
                     theCue = new VTTCue(cue.startTime, cue.endTime, "");
@@ -267,6 +270,7 @@
                         theCue.line = "auto";
                     }
                     theCue.id = cue.id;
+                    track.addCue(theCue);
                 }
 
                 if (type === "dual-mode") {
@@ -276,28 +280,36 @@
                 } else if (type === "french-mode") {
                     theCue.text = cue.frenchLines.join("\n");
                 }
-                track.addCue(theCue);
             }
         }
 
         function createTrack(video, type, host, subtitleMovedUp) {
             track = video.addTextTrack("captions", type);
-            // bilingualTrack.id = "bilingual-track";   // the id is a readonly attribute
             appendCues(track, type, host, subtitleMovedUp);
             return track;
         }
-        if ((host === "telequebec" && video.textTracks.length == 2) || 
-            ((host === "noovo" || host === "toutv") && video.textTracks.length == 0)) {
+
+        function getTrackByLabel(video, label) {
+            for (const track of video.textTracks) {
+                if (track.label === label) {
+                    return track;
+                }
+            }
+        }
+        if ((host === "telequebec" && video.textTracks.length === 0) ||
+            (host === "telequebec" && video.textTracks.length > 0 && video.textTracks[video.textTracks.length - 1].label !== "french-mode") || 
+            (host === "toutv" && video.textTracks.length == 0) ||
+            (host === "noovo" && video.textTracks.length <= 1)) {
             for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
                 let track = createTrack(video, mode, host);
                 video.append(track);
             }
         } else {
-            let bilingualTrack = video.textTracks[video.textTracks.length - 3];
+            let bilingualTrack = getTrackByLabel(video, "dual-mode");
             appendCues(bilingualTrack, "dual-mode", host, subtitleMovedUp);
-            let englishTrack = video.textTracks[video.textTracks.length - 2];
+            let englishTrack = getTrackByLabel(video, "english-mode");
             appendCues(englishTrack, "english-mode", host, subtitleMovedUp);
-            let frenchTrack = video.textTracks[video.textTracks.length - 1];
+            let frenchTrack = getTrackByLabel(video, "french-mode");
             appendCues(frenchTrack, "french-mode", host, subtitleMovedUp);
         }
 
@@ -368,6 +380,7 @@
 
     // spaceFrom Bottom determines how far the subtitles are from the bottom of the video
     function adjustSubtitlePosition(spaceFromBottom) {
+        if (!document.getElementsByTagName("VIDEO")[0]) return;
         let textTracks = document.getElementsByTagName("VIDEO")[0].textTracks;
         for (let textTrackIndex of [...Array(textTracks.length).keys()]) {
             for (let cueIndex in textTracks[textTrackIndex].cues) {
@@ -404,6 +417,10 @@
                 subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
                 subtitlePositionObserver.observe(document.getElementsByClassName("beacon-js video-js-custom")[0], 
                                                   {attributes: true, attributeFilter: ["class"]});
+                
+                // if (document.getElementById("invisible-translate-wrapper")) {
+                //     addEnglishToOriginalCuesWrapper();
+                // }
             }
         }
     };
@@ -414,7 +431,7 @@
     let wrapper = createWrapper(document);
     document.body.appendChild(wrapper);
     translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
-    translationObserver.observe(wrapper, {characterData: true, subtree: true});
+    translationObserver.observe(wrapper, {characterData: true, subtree: true, childList: true, attributes: true});
 
     chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         if (response["type"] === "mode") {
