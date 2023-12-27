@@ -226,7 +226,47 @@
         return [cueDict, processedCueIds];
     }
 
-    function toggleTextTracksNoovoAndToutv(mode, video, originalSubtitles) {
+    // export function toggleTextTracksTelequebec(mode, video) {
+    //     let index = 0;
+    //     modeIndexDict = {} // key - mode; value - index
+    //     while (index < video.textTracks.length) {
+    //         const textTrack = video.textTracks[index];
+    //         if (textTrack.label === "français") {
+    //             modeIndexDict["off"] = index;
+    //         }
+    //         if (textTrack.label === "dual-mode") {
+    //             modeIndexDict["dual-mode"] = index;
+    //         }
+    //         if (textTrack.label === "english-mode") {
+    //             modeIndexDict["english-mode"] = index;
+    //         }
+    //         if (textTrack.label === "french-mode") {
+    //             modeIndexDict["french-mode"] = index;
+    //         }
+    //         index ++;
+    //     }
+    //     // if (!video.textTracks[modeIndexDict["off"]] || !video.textTracks[modeIndexDict["dual-mode"]] || 
+    //     //     !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+    //     if (!video.textTracks[modeIndexDict["dual-mode"]] || 
+    //         !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+    //     function showTargetTextTrackAndHideOthers(targetIndex) {
+    //         let index = 0;
+    //         while (index < video.textTracks.length) {
+    //             if (index === targetIndex) {
+    //                 video.textTracks[index].mode = "showing";
+    //             } else {
+    //                 video.textTracks[index].mode = "hidden";
+    //             }
+    //             index++;
+    //         }
+    //     }
+
+    //     showTargetTextTrackAndHideOthers(modeIndexDict[mode]);
+    // }
+
+    function toggleTextTracks(mode, video, originalSubtitles) {
         let index = 0;
         modeIndexDict = {}; // key - mode; value - index
         while (index < video.textTracks.length) {
@@ -355,7 +395,7 @@
     chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         if (response["type"] === "mode") {
             mode = response["mode"];
-            toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+            toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
         } else if (response["type"] === "subtitles") {
             const url = response["url"];
             if (fetchedUrls.has(url)) {
@@ -374,8 +414,8 @@
 
             createTranslateElements(cues, wrapper);
             if (!getWrapper(document)) {
-                const appendable = document.getElementById("player");
-                appendable.appendChild(wrapper);
+                const appendable = document.getElementById("player-video");
+                appendable.prepend(wrapper);
             }
         }
         return true;
@@ -386,7 +426,7 @@
         const video = document.getElementsByTagName("VIDEO")[0];
         [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video, subtitleMovedUp);
         mode = await getSavedMode();
-        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+        toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
     }
 
     function modifyVideoPlayer() {

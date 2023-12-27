@@ -3,8 +3,8 @@
 
 
 import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule, 
-    parseVttCues, addEnglishToOriginalCues, toggleTextTracksTelequebec, 
-    getSavedMode, changeSubtitleFontSize, styleVideoCues, adjustSubtitlePosition} from "./utils";
+    parseVttCues, addEnglishToOriginalCues,  
+    getSavedMode, changeSubtitleFontSize, styleVideoCues, adjustSubtitlePosition, toggleTextTracks} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
 // cueDict is a dictionary of cues to be processed (just downloaded).
@@ -31,7 +31,7 @@ var prepareContainer = function(mutations, observer){
             resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
 
             subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-            subtitlePositionObserver.observe(document.getElementsByClassName("beacon-js video-js-custom")[0], 
+            subtitlePositionObserver.observe(document.getElementsByTagName("video-js")[0], 
                                               {attributes: true, attributeFilter: ["class"]});
             
             // if (document.getElementById("invisible-translate-wrapper")) {
@@ -51,8 +51,9 @@ translationObserver.observe(wrapper, {characterData: true, subtree: true, childL
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
+        originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
         mode = response["mode"];
-        toggleTextTracksTelequebec(mode, document.getElementById("player_html5_api"));
+        toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
     } else if (response["type"] === "subtitles") {
         const url = response["url"];
         if (fetchedUrls.has(url)) {
@@ -76,10 +77,11 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
-    const video = document.getElementById("player_html5_api");
+    const video = document.getElementsByTagName("video")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video, subtitleMovedUp);
+    originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
     mode = await getSavedMode();
-    toggleTextTracksTelequebec(mode, video);
+    toggleTextTracks(mode, video, originalSubtitles);
 }
 
 styleVideoCues();

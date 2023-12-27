@@ -7,6 +7,6 @@
   },
   "type": "module",
   "dependencies": {
-    "rollup": "^3.14.0"
+    "rollup": "^4.9.1"
   }
 }

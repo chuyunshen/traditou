@@ -1,6 +1,6 @@
 
 import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues,
-    getSavedMode, toggleTextTracksNoovoAndToutv, styleVideoCues, adjustSubtitlePosition} from "./utils";
+    getSavedMode, toggleTextTracks, styleVideoCues, adjustSubtitlePosition} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
@@ -54,7 +54,7 @@ function numberCues(cues) {
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
         mode = response["mode"];
-        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+        toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
     } else if (response["type"] === "subtitles") {
         const url = response["url"];
         if (fetchedUrls.has(url)) {
@@ -73,8 +73,8 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
         createTranslateElements(cues, wrapper);
         if (!getWrapper(document)) {
-            const appendable = document.getElementById("player");
-            appendable.appendChild(wrapper);
+            const appendable = document.getElementById("player-video");
+            appendable.prepend(wrapper);
         }
     }
     return true;
@@ -85,7 +85,7 @@ async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("VIDEO")[0];
     [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video, subtitleMovedUp);
     mode = await getSavedMode();
-    toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+    toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
 }
 
 function modifyVideoPlayer() {
