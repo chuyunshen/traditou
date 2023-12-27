@@ -2,7 +2,7 @@
 */
 
 import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
-    addEnglishToOriginalCues, toggleTextTracksNoovoAndToutv, getSavedMode, changeSubtitleFontSize, 
+    addEnglishToOriginalCues, toggleTextTracks, getSavedMode, changeSubtitleFontSize, 
     styleVideoCues, adjustSubtitlePosition} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
@@ -63,7 +63,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
         mode = response["mode"];
         originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
-        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
+        toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
     } else if (response["type"] === "subtitles") {
         // Noovo tends to send two duplicates at the beginning of the video.
         const url = response["url"];
@@ -97,7 +97,7 @@ async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video, subtitleMovedUp);
     originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
     mode = await getSavedMode();
-    toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("video")[0], originalSubtitles);
+    toggleTextTracks(mode, document.getElementsByTagName("video")[0], originalSubtitles);
 }
 
 function modifyVideoPlayer() {

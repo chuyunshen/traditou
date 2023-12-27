@@ -319,14 +319,51 @@
         return [cueDict, processedCueIds];
     }
 
-    function toggleTextTracksTelequebec(mode, video) {
+    // export function toggleTextTracksTelequebec(mode, video) {
+    //     let index = 0;
+    //     modeIndexDict = {} // key - mode; value - index
+    //     while (index < video.textTracks.length) {
+    //         const textTrack = video.textTracks[index];
+    //         if (textTrack.label === "français") {
+    //             modeIndexDict["off"] = index;
+    //         }
+    //         if (textTrack.label === "dual-mode") {
+    //             modeIndexDict["dual-mode"] = index;
+    //         }
+    //         if (textTrack.label === "english-mode") {
+    //             modeIndexDict["english-mode"] = index;
+    //         }
+    //         if (textTrack.label === "french-mode") {
+    //             modeIndexDict["french-mode"] = index;
+    //         }
+    //         index ++;
+    //     }
+    //     // if (!video.textTracks[modeIndexDict["off"]] || !video.textTracks[modeIndexDict["dual-mode"]] || 
+    //     //     !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+    //     if (!video.textTracks[modeIndexDict["dual-mode"]] || 
+    //         !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+    //     function showTargetTextTrackAndHideOthers(targetIndex) {
+    //         let index = 0;
+    //         while (index < video.textTracks.length) {
+    //             if (index === targetIndex) {
+    //                 video.textTracks[index].mode = "showing";
+    //             } else {
+    //                 video.textTracks[index].mode = "hidden";
+    //             }
+    //             index++;
+    //         }
+    //     }
+
+    //     showTargetTextTrackAndHideOthers(modeIndexDict[mode]);
+    // }
+
+    function toggleTextTracks(mode, video, originalSubtitles) {
         let index = 0;
         modeIndexDict = {}; // key - mode; value - index
         while (index < video.textTracks.length) {
             const textTrack = video.textTracks[index];
-            if (textTrack.label === "français") {
-                modeIndexDict["off"] = index;
-            }
             if (textTrack.label === "dual-mode") {
                 modeIndexDict["dual-mode"] = index;
             }
@@ -338,10 +375,26 @@
             }
             index ++;
         }
-        if (!video.textTracks[modeIndexDict["off"]] || !video.textTracks[modeIndexDict["dual-mode"]] || 
-            !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+        if (!video.textTracks[modeIndexDict["dual-mode"]] || !video.textTracks[modeIndexDict["english-mode"]] || 
+            !video.textTracks[modeIndexDict["french-mode"]]) return;
 
-        function showTargetTextTrackAndHideOthers(targetIndex) {
+        function showTargetTextTrackAndHideOthers(mode) {
+            if (mode === "off") {
+                if (originalSubtitles) {
+                    originalSubtitles.style.display = 'block';
+                } 
+                let index = 0;
+                while (index < video.textTracks.length) {
+                    video.textTracks[index].mode = "hidden";
+                    index++;
+                }
+                return;
+            }
+
+            if (originalSubtitles) {
+                originalSubtitles.style.display = 'none'; // this comes up at every mutation tho
+            } 
+            let targetIndex = modeIndexDict[mode];
             let index = 0;
             while (index < video.textTracks.length) {
                 if (index === targetIndex) {
@@ -353,7 +406,7 @@
             }
         }
 
-        showTargetTextTrackAndHideOthers(modeIndexDict[mode]);
+        showTargetTextTrackAndHideOthers(mode);
     }
 
     async function getSavedMode() {
@@ -363,7 +416,7 @@
     }
 
     function changeSubtitleFontSize() {
-        let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.035;
+        let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetWidth * 0.02;
         addRule("video::cue", { "font-size": `${newFontSize}px`});
     }
 
@@ -415,7 +468,7 @@
                 resizeObserver.observe(document.getElementsByTagName("VIDEO")[0]);
 
                 subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-                subtitlePositionObserver.observe(document.getElementsByClassName("beacon-js video-js-custom")[0], 
+                subtitlePositionObserver.observe(document.getElementsByTagName("video-js")[0], 
                                                   {attributes: true, attributeFilter: ["class"]});
                 
                 // if (document.getElementById("invisible-translate-wrapper")) {
@@ -435,8 +488,9 @@
 
     chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         if (response["type"] === "mode") {
+            originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
             mode = response["mode"];
-            toggleTextTracksTelequebec(mode, document.getElementById("player_html5_api"));
+            toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
         } else if (response["type"] === "subtitles") {
             const url = response["url"];
             if (fetchedUrls.has(url)) {
@@ -460,10 +514,11 @@
 
 
     async function addEnglishToOriginalCuesWrapper(mutations, observer) {
-        const video = document.getElementById("player_html5_api");
+        const video = document.getElementsByTagName("video")[0];
         [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video, subtitleMovedUp);
+        originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
         mode = await getSavedMode();
-        toggleTextTracksTelequebec(mode, video);
+        toggleTextTracks(mode, video, originalSubtitles);
     }
 
     styleVideoCues();

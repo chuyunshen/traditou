@@ -35,7 +35,9 @@
                     let newCueLine = unionedLine;
                     if (![" ", "!", ".", "?"].includes(unionedLine[unionedLine.length - 1])) {
                         newCueLine = unionedLine.slice(0, unionedLine.lastIndexOf(" "));  // make sure we dont cut words
-                        unionedLine.slice(unionedLine.lastIndexOf(" "));
+                        rollingLine = unionedLine.slice(unionedLine.lastIndexOf(" "));
+                    } else {
+                        rollingLine = "";
                     }
                     let newCue = new VTTCue(startTime, cue.endTime, newCueLine);
                     newCue.id = cueIdCount;
@@ -325,7 +327,47 @@
         return [cueDict, processedCueIds];
     }
 
-    function toggleTextTracksNoovoAndToutv(mode, video, originalSubtitles) {
+    // export function toggleTextTracksTelequebec(mode, video) {
+    //     let index = 0;
+    //     modeIndexDict = {} // key - mode; value - index
+    //     while (index < video.textTracks.length) {
+    //         const textTrack = video.textTracks[index];
+    //         if (textTrack.label === "français") {
+    //             modeIndexDict["off"] = index;
+    //         }
+    //         if (textTrack.label === "dual-mode") {
+    //             modeIndexDict["dual-mode"] = index;
+    //         }
+    //         if (textTrack.label === "english-mode") {
+    //             modeIndexDict["english-mode"] = index;
+    //         }
+    //         if (textTrack.label === "french-mode") {
+    //             modeIndexDict["french-mode"] = index;
+    //         }
+    //         index ++;
+    //     }
+    //     // if (!video.textTracks[modeIndexDict["off"]] || !video.textTracks[modeIndexDict["dual-mode"]] || 
+    //     //     !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+    //     if (!video.textTracks[modeIndexDict["dual-mode"]] || 
+    //         !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
+
+    //     function showTargetTextTrackAndHideOthers(targetIndex) {
+    //         let index = 0;
+    //         while (index < video.textTracks.length) {
+    //             if (index === targetIndex) {
+    //                 video.textTracks[index].mode = "showing";
+    //             } else {
+    //                 video.textTracks[index].mode = "hidden";
+    //             }
+    //             index++;
+    //         }
+    //     }
+
+    //     showTargetTextTrackAndHideOthers(modeIndexDict[mode]);
+    // }
+
+    function toggleTextTracks(mode, video, originalSubtitles) {
         let index = 0;
         modeIndexDict = {}; // key - mode; value - index
         while (index < video.textTracks.length) {
@@ -382,7 +424,7 @@
     }
 
     function changeSubtitleFontSize() {
-        let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetHeight * 0.035;
+        let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetWidth * 0.02;
         addRule("video::cue", { "font-size": `${newFontSize}px`});
     }
 
@@ -467,7 +509,7 @@
         if (response["type"] === "mode") {
             mode = response["mode"];
             originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
-            toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
+            toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], originalSubtitles);
         } else if (response["type"] === "subtitles") {
             // Noovo tends to send two duplicates at the beginning of the video.
             const url = response["url"];
@@ -501,7 +543,7 @@
         [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video, subtitleMovedUp);
         originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
         mode = await getSavedMode();
-        toggleTextTracksNoovoAndToutv(mode, document.getElementsByTagName("video")[0], originalSubtitles);
+        toggleTextTracks(mode, document.getElementsByTagName("video")[0], originalSubtitles);
     }
 
     function modifyVideoPlayer() {
