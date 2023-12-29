@@ -30,5 +30,13 @@ export default [
           format: 'umd',
           strict: false
         }
+    },
+    {
+      input: 'content/tv5_content.js',
+      output: {
+          file: 'dist/tv5_bundle.js',
+          format: 'umd',
+          strict: false
+        }
     }
   ];

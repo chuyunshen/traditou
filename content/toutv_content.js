@@ -11,6 +11,7 @@ var wrapper = createWrapper(document);
 var modified = false;
 var fetchedUrls = new Set();
 var subtitleMovedUp = null;
+var serviceName = "toutv";
 
 function changeSubtitleFontSize() {
     let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
@@ -83,7 +84,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("VIDEO")[0];
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("toutv", cueDict, processedCueIds, video, subtitleMovedUp);
+    [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     mode = await getSavedMode();
     toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
 }
@@ -103,7 +104,7 @@ function adjustSubtitlePositionWrapper(mutations, observer) {
     const mutation = mutations[mutations.length - 1];
     if (mutation.target.className.includes("vjs-user-active")) {
         subtitleMovedUp = true;
-        adjustSubtitlePosition(moveSubtitlesUpBy["toutv"]);
+        adjustSubtitlePosition(moveSubtitlesUpBy[serviceName]);
 
     } else if (mutation.target.className.includes("vjs-user-inactive")) {
         if (document.getElementsByTagName("VIDEO")[0].paused) return;

@@ -15,6 +15,7 @@ var modified = false;
 var cueIdCount = 0;
 var fetchedUrls = new Set();
 var subtitleMovedUp = null;
+var serviceName = "telequebec";
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -83,7 +84,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("video")[0];
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("telequebec", cueDict, processedCueIds, video, subtitleMovedUp);
+    [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
     mode = await getSavedMode();
     toggleTextTracks(mode, video, originalSubtitles);
@@ -103,7 +104,7 @@ function adjustSubtitlePositionWrapper(mutations, observer) {
     const mutation = mutations[mutations.length - 1];
     if (mutation.target.className.includes("vjs-user-active") && (subtitleMovedUp === null || !subtitleMovedUp)) {
         subtitleMovedUp = true;
-        adjustSubtitlePosition(moveSubtitlesUpBy["telequebec"]);
+        adjustSubtitlePosition(moveSubtitlesUpBy[serviceName]);
 
     } else if (mutation.target.className.includes("vjs-user-inactive") && (subtitleMovedUp === null || subtitleMovedUp)) {
         subtitleMovedUp = false;

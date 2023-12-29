@@ -3,4 +3,5 @@ export const moveSubtitlesUpBy = {
     "telequebec": 0,
     "toutv": -4,
     "prime": -6,
+    "tv5": -5,
 }

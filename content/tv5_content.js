@@ -1,21 +1,25 @@
-import {convertTTMLtoVTT} from "./ttmlToVtt"
+
 import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
     addEnglishToOriginalCues, toggleTextTracks, getSavedMode, changeSubtitleFontSize, 
-    styleVideoCues, adjustSubtitlePosition} from "./utils";
+    styleVideoCues, adjustSubtitlePosition, numberCues} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var wrapper = createWrapper(document);
 var modified = false;
+var cueIdCount = 0;
 
 var mode;
 var fetchedUrls = new Set();
 var subtitleMovedUp = null;
 var resizeObserverRegistered = false;
 var subtitlePositionObserverRegistered = false;
-var originalSubtitlesClassName = "atvwebplayersdk-captions-overlay";
-var serviceName = "prime"
+var originalSubtitlesClassName = "bmpui-ui-subtitle-overlay";
+var serviceName = "tv5";
+var hideableControlBarClassName = "bmpui-ui-uicontainer";
+var videoWrapperClassName = "bitmovinplayer-container";
+var controlBarhiddenClassName = "bmpui-controls-hidden";
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -45,7 +49,7 @@ var prepareContainer = function(mutations, observer){
 
     if (!subtitlePositionObserverRegistered) {
         subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-        let node = document.getElementsByClassName("atvwebplayersdk-overlays-container")[0].children[0]
+        let node = document.getElementsByClassName(hideableControlBarClassName)[0]
         if (node) {
             subtitlePositionObserver.observe( node, {attributes: true});
             subtitlePositionObserverRegistered = true;
@@ -70,10 +74,10 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
             return true;
         }
         fetchedUrls.add(url);
-        const ttml = response["original_ttml"];
-        const vtt = convertTTMLtoVTT(ttml)
+        const vtt = response["original_vtt"];
         vttReceived = true;
         let cues = await parseVttCues(vtt);
+        [cues, cueIdCount] = numberCues(cues, cueIdCount);
         for (const cue of cues) {
             if (processedCueIds.includes(cue.id)) continue;
             if (!cueDict.hasOwnProperty(cue.id)) {
@@ -83,7 +87,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
         createTranslateElements(cues, wrapper);
         if (!getWrapper(document)) {
-            const videoWrapper = document.getElementById("dv-web-player")
+            const videoWrapper = document.getElementsByClassName(videoWrapperClassName)[0]
             videoWrapper.appendChild(wrapper);
         }
     }
@@ -113,7 +117,7 @@ function adjustSubtitlePositionWrapper(mutations, observer) {
     const mutation = mutations[mutations.length - 1];
 
     // user active
-    if (!mutation.target.className.includes("hide")) {
+    if (!mutation.target.className.includes(controlBarhiddenClassName)) {
         subtitleMovedUp = true;
         adjustSubtitlePosition(moveSubtitlesUpBy[serviceName]);
 
