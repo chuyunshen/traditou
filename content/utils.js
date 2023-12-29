@@ -195,6 +195,18 @@ function areEqual(item1, item2) {
     return item1 === item2;
 }
 
+export function numberCues(cues, cueIdCount) {
+    let numberedCues = [];
+    let startTime;
+    for (let [index, cue] of cues.entries()) {
+        let newCue = new VTTCue(cue.startTime, cue.endTime, cue.parsedLines.join(" "));
+        newCue.id = cueIdCount;
+        cueIdCount++;
+        numberedCues.push(newCue);
+    }
+    return [numberedCues, cueIdCount]; 
+}
+
 export function createWrapper(document) {
     let wrapper = document.getElementById("invisible-translate-wrapper");
     if (!wrapper) {
@@ -393,7 +405,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     if ((host === "telequebec" && video.textTracks.length === 0) ||
         (host === "telequebec" && video.textTracks.length > 0 && video.textTracks[video.textTracks.length - 1].label !== "french-mode") || 
         (host === "toutv" && video.textTracks.length == 0) ||
-        (["noovo", "prime"].includes(host) && video.textTracks.length <= 1)) {
+        (["noovo", "prime", "tv5"].includes(host) && video.textTracks.length <= 1)) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
             let track = createTrack(video, mode, host);
             video.append(track);
@@ -412,46 +424,6 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
 
     return [cueDict, processedCueIds];
 }
-
-// export function toggleTextTracksTelequebec(mode, video) {
-//     let index = 0;
-//     modeIndexDict = {} // key - mode; value - index
-//     while (index < video.textTracks.length) {
-//         const textTrack = video.textTracks[index];
-//         if (textTrack.label === "français") {
-//             modeIndexDict["off"] = index;
-//         }
-//         if (textTrack.label === "dual-mode") {
-//             modeIndexDict["dual-mode"] = index;
-//         }
-//         if (textTrack.label === "english-mode") {
-//             modeIndexDict["english-mode"] = index;
-//         }
-//         if (textTrack.label === "french-mode") {
-//             modeIndexDict["french-mode"] = index;
-//         }
-//         index ++;
-//     }
-//     // if (!video.textTracks[modeIndexDict["off"]] || !video.textTracks[modeIndexDict["dual-mode"]] || 
-//     //     !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
-
-//     if (!video.textTracks[modeIndexDict["dual-mode"]] || 
-//         !video.textTracks[modeIndexDict["english-mode"]] || !video.textTracks[modeIndexDict["french-mode"]]) return;
-
-//     function showTargetTextTrackAndHideOthers(targetIndex) {
-//         let index = 0;
-//         while (index < video.textTracks.length) {
-//             if (index === targetIndex) {
-//                 video.textTracks[index].mode = "showing";
-//             } else {
-//                 video.textTracks[index].mode = "hidden";
-//             }
-//             index++;
-//         }
-//     }
-
-//     showTargetTextTrackAndHideOthers(modeIndexDict[mode]);
-// }
 
 export function toggleTextTracks(mode, video, originalSubtitles) {
     let index = 0;

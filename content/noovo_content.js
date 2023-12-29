@@ -17,6 +17,7 @@ var subtitleMovedUp = null;
 var textContainerReady = false;
 var resizeObserverRegistered = false;
 var subtitlePositionObserverRegistered = false;
+var serviceName = "noovo";
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -94,7 +95,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("video")[0];
-    [cueDict, processedCueIds] = addEnglishToOriginalCues("noovo", cueDict, processedCueIds, video, subtitleMovedUp);
+    [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
     mode = await getSavedMode();
     toggleTextTracks(mode, document.getElementsByTagName("video")[0], originalSubtitles);
@@ -116,7 +117,7 @@ function adjustSubtitlePositionWrapper(mutations, observer) {
     // user active
     if (!mutation.target.className.includes("jasper-player-overlay__hidden--xbqt7")) {
         subtitleMovedUp = true;
-        adjustSubtitlePosition(moveSubtitlesUpBy["noovo"]);
+        adjustSubtitlePosition(moveSubtitlesUpBy[serviceName]);
 
     // user inactive
     } else {
