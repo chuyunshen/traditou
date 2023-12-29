@@ -4,7 +4,7 @@
   
     "name": "Traditou",
     "description": "Provides auto-translated dual subtitles on French Canadian streaming websites: Noovo, Tou.tv, and TeleQuebec.",
-    "version": "1.0.6",
+    "version": "1.1.0",
     "icons": {
       "128":"icons/icon128.png",
       "48":"icons/icon48.png",
@@ -28,7 +28,9 @@
         "https://www.noovo.ca/*",
         "https://*.9c9media.com/*",
         "https://*.tou.tv/*",
-        "https://*.akamaized.net/*"
+        "https://*.akamaized.net/*",
+        "https://*.pv-cdn.net/*",
+        "https://*.primevideo.com/*"
     ],
     "content_scripts":[
       {
@@ -42,6 +44,10 @@
       {
         "matches":["https://video.telequebec.tv/*"],
         "js":["dist/telequebec_bundle.js"]
+      },
+      {
+        "matches":["https://www.primevideo.com/*"],
+        "js":["dist/prime_bundle.js"]
       }
     ],
     "web_accessible_resources": [

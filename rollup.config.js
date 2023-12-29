@@ -22,5 +22,13 @@ export default [
           format: 'umd',
           strict: false
         }
+    },
+    {
+      input: 'content/prime_content.js',
+      output: {
+          file: 'dist/prime_bundle.js',
+          format: 'umd',
+          strict: false
+        }
     }
   ];

@@ -11,6 +11,7 @@ import {moveSubtitlesUpBy} from "./config";
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var mode;
+var modified = false;
 var cueIdCount = 0;
 var fetchedUrls = new Set();
 var subtitleMovedUp = null;
@@ -21,6 +22,10 @@ var prepareContainer = function(mutations, observer){
             let track =  document.getElementById("français");
             if (track && mode !== 'off') {
                 track.track.mode = "hidden";
+            }
+            if (!modified) {
+                modifyVideoPlayer();
+                modified = true;
             }
             let timeDisplay =  document.getElementsByClassName("vjs-current-time vjs-time-control vjs-control")[0];
             if (timeDisplay) {
@@ -82,6 +87,14 @@ async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
     mode = await getSavedMode();
     toggleTextTracks(mode, video, originalSubtitles);
+}
+
+function modifyVideoPlayer() {
+    // make the video right-clickable
+    var elements = document.getElementsByTagName("*");
+    for(var id = 0; id < elements.length; ++id) { 
+        elements[id].addEventListener('contextmenu', function(e) {e.stopPropagation()},true);
+        elements[id].oncontextmenu = null; }
 }
 
 styleVideoCues();

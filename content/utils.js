@@ -393,7 +393,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     if ((host === "telequebec" && video.textTracks.length === 0) ||
         (host === "telequebec" && video.textTracks.length > 0 && video.textTracks[video.textTracks.length - 1].label !== "french-mode") || 
         (host === "toutv" && video.textTracks.length == 0) ||
-        (host === "noovo" && video.textTracks.length <= 1)) {
+        (["noovo", "prime"].includes(host) && video.textTracks.length <= 1)) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
             let track = createTrack(video, mode, host);
             video.append(track);
