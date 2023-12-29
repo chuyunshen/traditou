@@ -2,3 +2,5 @@ node_modules
 _metadata
 .DS_Store
 fonts/.DS_Store
+content/unused/
+dist/

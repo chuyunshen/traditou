@@ -4,7 +4,7 @@ Find it on the <a href="https://chrome.google.com/webstore/detail/traditou/bkjdj
 
 It intercepts the original subtitle files sent from the website servers, parses them and displays the original subtitles along with auto-translated English subtitles on the bottom.
 
-This extension can be used with the trifecta of French Canadian streaming websites:  [Tou.tv](https://ici.tou.tv/),  [Noovo.ca](https://noovo.ca), and  [TeleQuebec](https://video.telequebec.tv/), with the goal of French language learning in mind.
+This extension can be used with the a number of streaming websites:  [Prime Video](https://primevideo.com), [Tou.tv](https://ici.tou.tv/),  [Noovo.ca](https://noovo.ca), and  [TeleQuebec](https://video.telequebec.tv/), with the goal of French language learning in mind.
 
 Traditou not only matches words closely, it also transforms TV-style rolling captions (which are visually difficult to follow) into more readable streaming service style subtitles.
 
