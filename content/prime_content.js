@@ -1,13 +1,13 @@
 import {convertTTMLtoVTT} from "./ttmlToVtt"
 import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
     addEnglishToOriginalCues, toggleTextTracks, getSavedMode, changeSubtitleFontSize, 
-    styleVideoCues, adjustSubtitlePosition} from "./utils";
+    styleVideoCues, adjustSubtitlePosition, refreshCues, refreshTextTracks} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var wrapper = createWrapper(document);
-var modified = false;
+var needToRefreshTextTracks = false;
 
 var mode;
 var fetchedUrls = new Set();
@@ -22,10 +22,6 @@ var prepareContainer = function(mutations, observer){
         if (mutation.target.className && 
             typeof mutation.target.className === "string" && 
             mutation.target.className.includes(originalSubtitlesClassName)) {
-            if (!modified) {
-                modifyVideoPlayer();
-                modified = true;
-            }
             if (mode !== "off") {
                 originalSubtitles = document.getElementsByClassName(originalSubtitlesClassName)[0];
                 if (originalSubtitles) {
@@ -45,7 +41,10 @@ var prepareContainer = function(mutations, observer){
 
     if (!subtitlePositionObserverRegistered) {
         subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-        let node = document.getElementsByClassName("atvwebplayersdk-overlays-container")[0].children[0]
+        let node = null;
+        if (document.getElementsByClassName("atvwebplayersdk-overlays-container")[0]) {
+            node = document.getElementsByClassName("atvwebplayersdk-overlays-container")[0].children[0]
+        }
         if (node) {
             subtitlePositionObserver.observe( node, {attributes: true});
             subtitlePositionObserverRegistered = true;
@@ -74,12 +73,8 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         const vtt = convertTTMLtoVTT(ttml)
         vttReceived = true;
         let cues = await parseVttCues(vtt);
-        for (const cue of cues) {
-            if (processedCueIds.includes(cue.id)) continue;
-            if (!cueDict.hasOwnProperty(cue.id)) {
-                cueDict[cue.id] = cue;
-            }
-        }
+
+        needToRefreshTextTracks = refreshCues(cues, processedCueIds, cueDict);
 
         createTranslateElements(cues, wrapper);
         if (!getWrapper(document)) {
@@ -92,19 +87,18 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
+    // sleep to make sure that the subtitles have been translated
     const video = document.getElementsByTagName("video")[0];
+    await new Promise(r => setTimeout(r, 1000));
+    if (needToRefreshTextTracks) {
+        refreshTextTracks();
+        needToRefreshTextTracks = false;
+    }
+
     [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     originalSubtitles = document.getElementsByClassName(originalSubtitlesClassName)[0];
     mode = await getSavedMode();
     toggleTextTracks(mode, document.getElementsByTagName("video")[0], originalSubtitles);
-}
-
-function modifyVideoPlayer() {
-    // make the video right-clickable
-    var elements = document.getElementsByTagName("*");
-    for(var id = 0; id < elements.length; ++id) { 
-        elements[id].addEventListener('contextmenu', function(e) {e.stopPropagation()},true);
-        elements[id].oncontextmenu = null; }
 }
 
 styleVideoCues();

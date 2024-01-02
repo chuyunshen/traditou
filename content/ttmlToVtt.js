@@ -19,7 +19,7 @@ export function convertTTMLtoVTT(ttmlString) {
         // Extract attributes from the <p> element
         const beginTime = paragraph.getAttribute('begin');
         const endTime = paragraph.getAttribute('end');
-        const textContent = paragraph.innerHTML.replace(`<br xmlns="http://www.w3.org/ns/ttml"/>`, " ").trim();
+        const textContent = paragraph.innerHTML.replace(`<br xmlns="http://www.w3.org/ns/ttml"/>`, " ").replace(/  +/g, ' ').trim();
 
         // Format the result in VTT style
         const vttResult = `${i + 1}\n${beginTime} --> ${endTime} \n<b>${textContent}</b>\n\n`;

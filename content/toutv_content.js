@@ -1,22 +1,21 @@
 
 import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, addEnglishToOriginalCues,
-    getSavedMode, toggleTextTracks, styleVideoCues, adjustSubtitlePosition} from "./utils";
+    getSavedMode, toggleTextTracks, styleVideoCues, adjustSubtitlePosition, changeSubtitleFontSize, refreshCues, refreshTextTracks} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var mode;
+var needToRefreshTextTracks = false;
 
 var wrapper = createWrapper(document);
 var modified = false;
 var fetchedUrls = new Set();
 var subtitleMovedUp = null;
 var serviceName = "toutv";
+var subtitleActiveClassName = "vjs-user-active"
+var subtitleInactiveClassName = "vjs-user-inactive"
 
-function changeSubtitleFontSize() {
-    let newFontSize = document.getElementsByTagName("VIDEO")[0].offsetHeight * 0.04;
-    addRule("video::cue", { "font-size": `${newFontSize}px`});
-}
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
         if (mutation.target.className && 
@@ -31,8 +30,13 @@ var prepareContainer = function(mutations, observer){
 
 
             subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
-            subtitlePositionObserver.observe(document.getElementById("vjs_video_1"), 
-                                              {attributes: true, attributeFilter: ["class"]});
+            let controlBarWrapper = null;
+            if (document.getElementsByClassName(subtitleActiveClassName)[0]) {
+                controlBarWrapper = document.getElementsByClassName(subtitleActiveClassName)[0].parentElement;
+            } else if (document.getElementsByClassName(subtitleInactiveClassName)[0]) {
+                controlBarWrapper = document.getElementsByClassName(subtitleInactiveClassName)[0].parentElement;
+            }
+            subtitlePositionObserver.observe(controlBarWrapper, {attributes: true, attributeFilter: ["class"]});
         }
     }
 }
@@ -65,13 +69,7 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         const vtt = response["original_vtt"];
         let cues = await parseVttCues(vtt);
         cues = numberCues(cues);
-        for (const cue of cues) {
-            if (processedCueIds.includes(cue.id)) continue;
-            if (!cueDict.hasOwnProperty(cue.id)) {
-                cueDict[cue.id] = cue;
-            }
-        }
-
+        needToRefreshTextTracks = refreshCues(cues, processedCueIds, cueDict);
         createTranslateElements(cues, wrapper);
         if (!getWrapper(document)) {
             const appendable = document.getElementById("player-video");
@@ -84,6 +82,10 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("VIDEO")[0];
+    if (needToRefreshTextTracks) {
+        refreshTextTracks();
+        needToRefreshTextTracks = false;
+    }
     [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     mode = await getSavedMode();
     toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
@@ -102,11 +104,11 @@ styleVideoCues();
 
 function adjustSubtitlePositionWrapper(mutations, observer) {
     const mutation = mutations[mutations.length - 1];
-    if (mutation.target.className.includes("vjs-user-active")) {
+    if (mutation.target.className.includes(subtitleActiveClassName)) {
         subtitleMovedUp = true;
         adjustSubtitlePosition(moveSubtitlesUpBy[serviceName]);
 
-    } else if (mutation.target.className.includes("vjs-user-inactive")) {
+    } else if (mutation.target.className.includes(subtitleInactiveClassName)) {
         if (document.getElementsByTagName("VIDEO")[0].paused) return;
         subtitleMovedUp = false;
         adjustSubtitlePosition("auto");

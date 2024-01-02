@@ -3,13 +3,14 @@
 
 import {squashCuesNoovo, createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
     addEnglishToOriginalCues, toggleTextTracks, getSavedMode, changeSubtitleFontSize, 
-    styleVideoCues, adjustSubtitlePosition} from "./utils";
+    styleVideoCues, adjustSubtitlePosition, refreshCues, refreshTextTracks} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
 var wrapper = createWrapper(document);
 var modified = false;
+var needToRefreshTextTracks = false;
 
 var mode;
 var fetchedUrls = new Set();
@@ -76,12 +77,8 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
         vttReceived = true;
         let cues = await parseVttCues(vtt);
         cues = squashCuesNoovo(cues);
-        for (const cue of cues) {
-            if (processedCueIds.includes(cue.id)) continue;
-            if (!cueDict.hasOwnProperty(cue.id)) {
-                cueDict[cue.id] = cue;
-            }
-        }
+
+        needToRefreshTextTracks = refreshCues(cues, processedCueIds, cueDict);
 
         createTranslateElements(cues, wrapper);
         if (!getWrapper(document)) {
@@ -95,6 +92,10 @@ chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
 
 async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     const video = document.getElementsByTagName("video")[0];
+    if (needToRefreshTextTracks) {
+        refreshTextTracks();
+        needToRefreshTextTracks = false;
+    }
     [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     originalSubtitles = document.getElementsByClassName("shaka-text-container")[0];
     mode = await getSavedMode();
