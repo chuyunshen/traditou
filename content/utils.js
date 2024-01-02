@@ -251,7 +251,6 @@ export function createTranslateElements(cues, wrapper) {
 export async function parseVttCues(vtt){
     const url = getVTTURL(vtt);
 
-    // const video = document.getElementById("player_html5_api");
     const video = document.createElement("video");
     const track = document.createElement("track");
     const cues = await vttToCues(video, track, url);
@@ -482,8 +481,11 @@ export async function getSavedMode() {
 }
 
 export function changeSubtitleFontSize() {
-    let newFontSize = document.getElementsByTagName("VIDEO")[0].parentElement.offsetWidth * 0.02;
-    addRule("video::cue", { "font-size": `${newFontSize}px`});
+    const video = document.getElementsByTagName("VIDEO")[0]
+    if (video) {
+        let newFontSize = video.parentElement.offsetWidth * 0.02;
+        addRule("video::cue", { "font-size": `${newFontSize}px`});
+    }
 }
 
 export function styleVideoCues() {
@@ -505,5 +507,60 @@ export function adjustSubtitlePosition(spaceFromBottom) {
         for (let cueIndex in textTracks[textTrackIndex].cues) {
             textTracks[textTrackIndex].cues[cueIndex].line = spaceFromBottom;
         }
+    }
+}
+
+/* for prime video, noovo, and toutv, the traditou scripts are not newly loaded on each new episode 
+    so old subtitles will be displayed
+    If the new subtitles have cues that are of the same time,
+    meaning there are two cues both for second 1 - 5 of the video, delete all the old cues and old translate items.
+*/ 
+export function refreshCues(newCues, processedCueIds, cueDict) {
+    let startTime = newCues[0].startTime
+    let endTime = newCues[newCues.length -1].endTime
+
+    let newCuesHaveOverlapWithOldCues = false;
+
+    console.log("newCues")
+    console.log(newCues)
+
+    for (const cueId in cueDict) {
+        const cue = cueDict[cueId];
+        if (startTime <= cue.startTime <= endTime || startTime <= cue.endTime <= endTime)  {
+            newCuesHaveOverlapWithOldCues = true;
+            break;
+        }
+    }
+    console.log("newCuesHaveOverlapWithOldCues")
+    console.log(newCuesHaveOverlapWithOldCues)
+
+    if (newCuesHaveOverlapWithOldCues) {
+        while (processedCueIds.length > 0) {
+            processedCueIds.pop();
+        }
+        for (const key in cueDict) {
+            delete cueDict[key];
+        }
+        // remove old invisible translate
+        document.getElementById("invisible-translate-wrapper").replaceChildren();
+    }
+    console.log("delete cueDict")
+    console.log(cueDict)
+    for (const cue of newCues) {
+        if (processedCueIds.includes(cue.id)) continue;
+        if (!cueDict.hasOwnProperty(cue.id)) {
+            cueDict[cue.id] = cue;
+        }
+    }
+    console.log("cueDict")
+    console.log(cueDict)
+    return newCuesHaveOverlapWithOldCues;
+}
+
+export function refreshTextTracks() {
+    const video = document.getElementsByTagName("VIDEO")[0];
+    for (const index in video.textTracks.length) {
+        video.textTracks[index].mode = "hidden";
+        video.textTracks[index].mode = "showing";
     }
 }

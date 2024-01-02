@@ -127,7 +127,7 @@ h4 {
 
 #popup-body {
     font-size: 16px;
-    height:480px; 
+    height:500px; 
     width: 350px; 
     margin: 20px;
     /* font-family: 'Noto Serif SC', serif; */
@@ -201,7 +201,7 @@ h4 {
     padding-top: 3px;
     padding-bottom: 3px;
     outline-color: grey;
-    width: 170px;
+    width: 200px;
     text-align: center;
   }
 

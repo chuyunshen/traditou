@@ -2,9 +2,9 @@
   
     "manifest_version": 3,
   
-    "name": "Traditou",
-    "description": "Provides auto-translated dual subtitles on French Canadian streaming websites: Noovo, Tou.tv, and TeleQuebec.",
-    "version": "1.2.0",
+    "name": "Traditou: Dual Subtitles for Prime & More",
+    "description": "Provides auto-translated dual subtitles on streaming websites: PrimeVideo, Noovo.ca, TeleQuebec.tv, Tou.tv, and TV5Unis.ca.",
+    "version": "1.2.1",
     "icons": {
       "128":"icons/icon128.png",
       "48":"icons/icon48.png",
