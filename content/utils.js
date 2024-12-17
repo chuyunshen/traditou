@@ -531,8 +531,6 @@ export function refreshCues(newCues, processedCueIds, cueDict) {
             break;
         }
     }
-    console.log("newCuesHaveOverlapWithOldCues")
-    console.log(newCuesHaveOverlapWithOldCues)
 
     if (newCuesHaveOverlapWithOldCues) {
         while (processedCueIds.length > 0) {

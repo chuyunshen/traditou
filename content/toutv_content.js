@@ -32,9 +32,9 @@ var prepareContainer = function(mutations, observer){
             subtitlePositionObserver = new MutationObserver(adjustSubtitlePositionWrapper);
             let controlBarWrapper = null;
             if (document.getElementsByClassName(subtitleActiveClassName)[0]) {
-                controlBarWrapper = document.getElementsByClassName(subtitleActiveClassName)[0].parentElement;
+                controlBarWrapper = document.getElementsByClassName(subtitleActiveClassName)[0];
             } else if (document.getElementsByClassName(subtitleInactiveClassName)[0]) {
-                controlBarWrapper = document.getElementsByClassName(subtitleInactiveClassName)[0].parentElement;
+                controlBarWrapper = document.getElementsByClassName(subtitleInactiveClassName)[0];
             }
             subtitlePositionObserver.observe(controlBarWrapper, {attributes: true, attributeFilter: ["class"]});
         }
