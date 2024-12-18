@@ -8,8 +8,8 @@ This extension can be used with the a number of streaming websites: [Prime Video
 
 Traditou not only matches words closely, it also transforms TV-style rolling captions (which are visually difficult to follow) into more readable streaming service style subtitles.
 
-<img src="images/telequebec_screenshot_with_border2.png">
-<img src="images/demo.gif" style="margin-left:20px">
+<img src="https://imgur.com/R6AOQa5.png">
+<img src="https://imgur.com/nTPqK7e.gif" style="margin-left:20px">
 
 ### Quick Start
 ```
