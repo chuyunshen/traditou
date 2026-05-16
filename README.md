@@ -4,7 +4,9 @@ Find it on the <a href="https://chrome.google.com/webstore/detail/traditou/bkjdj
 
 It intercepts the original subtitle files sent from the website servers, parses them and displays the original subtitles along with auto-translated subtitles on the bottom.
 
-This extension can be used with the a number of streaming websites: [Prime Video](https://primevideo.com), [Tou.tv](https://ici.tou.tv/), [Noovo.ca](https://noovo.ca), [TeleQuebec](https://video.telequebec.tv/), [TV5Unis](https://www.tv5unis.ca) with the goal of language learning in mind.
+This extension can be used with a number of streaming websites: [Prime Video](https://primevideo.com), [Tou.tv](https://ici.tou.tv/), [TeleQuebec](https://video.telequebec.tv/), [TV5Unis](https://www.tv5unis.ca) with the goal of language learning in mind.
+
+Noovo.ca is now absorbed into Crave. Crave's subtitles are not easy to fetch like the other streaming sites, so Crave is no longer being supported by Traditou, for the time being.
 
 Traditou not only matches words closely, it also transforms TV-style rolling captions (which are visually difficult to follow) into more readable streaming service style subtitles.
 

@@ -1,7 +1,7 @@
 chrome.webRequest.onCompleted.addListener(
   function(details) {
     if ((details.initiator === "https://telequebec.tv" && details.url.includes("vtt")) ||
-      (details.initiator === "https://www.noovo.ca" && details.url.includes("manifest.vtt")) ||
+      (details.initiator === "https://crave.ca" && details.url.includes("manifest.vtt")) ||
       (details.initiator === "https://www.tv5unis.ca" && details.url.includes(".vtt")) ||
       (details.initiator === "https://ici.tou.tv" && details.url.includes("vtt"))) {
       if (!details.initiator.includes("chrome-extension")) {
