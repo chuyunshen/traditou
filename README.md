@@ -26,6 +26,8 @@ To compile the content scripts:
 rollup -c
 ```
 
+To test the extension locally, go to Chrome extensions -> Manage Extensions -> Load unpacked.
+
 Prepare for another Chrome Web Store release:
 First cd out of the traditou directory and then
 ```

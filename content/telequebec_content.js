@@ -7,6 +7,8 @@ import {squashCues, createWrapper, getWrapper, createTranslateElements, addRule,
     getSavedMode, changeSubtitleFontSize, styleVideoCues, adjustSubtitlePosition, toggleTextTracks} from "./utils";
 import {moveSubtitlesUpBy} from "./config";
 
+console.log("running telequebec content script");
+
 // cueDict is a dictionary of cues to be processed (just downloaded).
 var cueDict = {};  // it's a global variable because there doesnt seem to be ways to pass extra params into the mutation observer.
 var processedCueIds = [];
@@ -56,6 +58,7 @@ translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
 translationObserver.observe(wrapper, {characterData: true, subtree: true, childList: true, attributes: true});
 
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
+    console.log("debug this")
     if (response["type"] === "mode") {
         originalSubtitles = document.getElementsByClassName("vjs-text-track-display")[0];
         mode = response["mode"];

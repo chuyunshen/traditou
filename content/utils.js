@@ -401,10 +401,13 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
             }
         }
     }
-    if ((host === "telequebec" && video.textTracks.length === 0) ||
-        (host === "telequebec" && video.textTracks.length > 0 && video.textTracks[video.textTracks.length - 1].label !== "french-mode") || 
-        (host === "toutv" && video.textTracks.length == 0) ||
-        (["noovo", "prime", "tv5"].includes(host) && video.textTracks.length <= 1)) {
+    let needToCreateTracks = true;
+    for (const textTrack of video.textTracks) {
+        if (textTrack.label === "dual-mode") {
+            needToCreateTracks = false;
+        }
+    }
+    if (needToCreateTracks) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
             let track = createTrack(video, mode, host);
             video.append(track);

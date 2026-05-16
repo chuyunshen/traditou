@@ -15,6 +15,7 @@ var subtitleMovedUp = null;
 var serviceName = "toutv";
 var subtitleActiveClassName = "vjs-user-active"
 var subtitleInactiveClassName = "vjs-user-inactive"
+var originalSubtitlesClassName = "rc-cues-container";
 
 var prepareContainer = function(mutations, observer){
     for (const mutation of mutations){
@@ -39,12 +40,33 @@ var prepareContainer = function(mutations, observer){
             subtitlePositionObserver.observe(controlBarWrapper, {attributes: true, attributeFilter: ["class"]});
         }
     }
+    for (const mutation of mutations){
+        if (mutation.target.className && 
+            typeof mutation.target.className === "string" && 
+            mutation.target.className.includes(originalSubtitlesClassName)) {
+            if (mode !== "off") {
+                originalSubtitles = document.getElementsByClassName(originalSubtitlesClassName)[0];
+                if (originalSubtitles) {
+                    originalSubtitles.style.display = 'none';
+                } 
+            }
+        }
+    }
 }
 videoReadyObserver = new MutationObserver(prepareContainer);
 videoReadyObserver.observe(document.documentElement, {childList:true, subtree:true});
 
 translationObserver = new MutationObserver(addEnglishToOriginalCuesWrapper);
 translationObserver.observe(wrapper, {characterData: true, subtree: true});
+
+textTrackObserver = new MutationObserver((mutations, observer) => {
+    for (const mutation of mutations){
+        if (mutation.target.nodeName === 'TRACK') {
+            toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName(originalSubtitlesClassName)[0]);
+        }
+    }
+});
+textTrackObserver.observe(document, { characterData: true, childList: true, subtree: true });
 
 function numberCues(cues) {
     let cueIdCount = 0;
@@ -59,7 +81,7 @@ function numberCues(cues) {
 chrome.runtime.onMessage.addListener(async function (response, sendResponse) {
     if (response["type"] === "mode") {
         mode = response["mode"];
-        toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+        toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName(originalSubtitlesClassName)[0]);
     } else if (response["type"] === "subtitles") {
         const url = response["url"];
         if (fetchedUrls.has(url)) {
@@ -88,7 +110,7 @@ async function addEnglishToOriginalCuesWrapper(mutations, observer) {
     }
     [cueDict, processedCueIds] = addEnglishToOriginalCues(serviceName, cueDict, processedCueIds, video, subtitleMovedUp);
     mode = await getSavedMode();
-    toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName("vjs-text-track-display")[0]);
+    toggleTextTracks(mode, document.getElementsByTagName("VIDEO")[0], document.getElementsByClassName(originalSubtitlesClassName)[0]);
 }
 
 function modifyVideoPlayer() {
