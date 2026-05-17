@@ -351,7 +351,10 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
             }
             // cue.text = cue.bilingualLines.join("\n");
         } else {
-            console.log("div cant be found");
+            cue.bilingualLines = [cue.text.trim()];
+            cue.frenchLines = [cue.text.trim()];
+            cue.englishLines = [cue.text.trim()];
+            notYetTranslatedCueDict[cue.id] = cue;
         }
     }
 

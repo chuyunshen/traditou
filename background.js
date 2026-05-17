@@ -2,11 +2,11 @@ chrome.webRequest.onCompleted.addListener(
   function(details) {
     if ((details.initiator === "https://telequebec.tv" && details.url.includes("vtt")) ||
       (details.initiator === "https://crave.ca" && details.url.includes("manifest.vtt")) ||
-      (details.initiator === "https://www.tv5unis.ca" && details.url.includes(".vtt")) ||
+      (details.initiator === "https://www.tv5plus.ca" && details.url.includes(".vtt")) ||
       (details.initiator === "https://ici.tou.tv" && details.url.includes("vtt"))) {
       if (!details.initiator.includes("chrome-extension")) {
         url = details.url
-        if (details.initiator === "https://www.tv5unis.ca") {
+        if (details.initiator === "https://www.tv5plus.ca") {
           url = details.url.substring(0, details.url.indexOf(".vtt") + 4)
         }
         fetch(url, {headers: {"from_traditou": "true"}}).then(res => res.text()).then( res =>
@@ -47,7 +47,7 @@ chrome.webRequest.onCompleted.addListener(
       "https://*.akamaized.net/*",
       "https://*.pv-cdn.net/*",
       "https://*.primevideo.com/*",
-      "https://*.tv5unis.ca/*",
+      "https://*.tv5plus.ca/*",
       "https://*.llnw.net/*"
     ] // IMPORTANT: remember to add to manifest.json host permissions
   }) 

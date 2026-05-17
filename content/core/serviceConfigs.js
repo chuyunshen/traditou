@@ -114,13 +114,13 @@ export const toutvConfig = {
 };
 
 // ============================================================
-// TV5 UNIS - Uses video.js player
+// TV5
 // ============================================================
 export const tv5Config = {
     serviceName: "tv5",
     videoSelector: "video",
     moveSubtitlesUpBy: -5,
-    // originalSubtitleIdToHide: "fr-captions",
+    originalSubtitlesClassName: "bmpui-ui-subtitle-label",
     controlBarSelector: "video-js",
     userActiveClassName: "vjs-user-active",
     userInactiveClassName: "vjs-user-inactive",

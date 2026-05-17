@@ -268,6 +268,11 @@ export class VideoPlayerAdapter {
             this.cueIdCount = processedCues[1];
         } else {
             cues = processedCues;
+            // processCues didn't return a new cueIdCount, so assign unique IDs now
+            // to prevent collisions when the same chunk-local IDs appear in a later chunk
+            for (const cue of cues) {
+                cue.id = this.cueIdCount++;
+            }
         }
 
         // Update cue dictionary and refresh tracks if needed
