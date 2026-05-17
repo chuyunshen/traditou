@@ -24,8 +24,7 @@ export class VideoPlayerAdapter {
             // Functions for cue processing
             processCues: (cues) => cues,
             // Observer configuration
-            videoReadyObserverConfig: { childList: true, subtree: true },
-            // originalSubtitleObserverConfig: { childList: true, subtree: true, characterData: true, attributes: true }, 
+            videoReadyObserverConfig: { childList: true, subtree: true, characterData: true },
             subtitlePositionObserverConfig: { attributes: true },
             ...config
         };
@@ -40,8 +39,8 @@ export class VideoPlayerAdapter {
         this.modified = false;
         this.needToRefreshTextTracks = false;
         this.resizeObserverRegistered = false;
-        // this.originalSubtitleObserverRegistered = false;
         this.subtitlePositionObserverRegistered = false;
+        this.textTrackProtectionSetup = false;
 
         this.wrapper = createWrapper(document);
         this.originalSubtitles = null;
@@ -60,9 +59,25 @@ export class VideoPlayerAdapter {
     async initialize() {
         this.mode = await getSavedMode();
         styleVideoCues();
+        this.applySubtitleVisibilityRule();
         this.setupWrapper();
         this.setupMessageListener();
         this.setupVideoReadyObserver();
+    }
+
+    applySubtitleVisibilityRule() {
+        if (!this.config.originalSubtitlesClassName) return;
+        let styleEl = document.getElementById("traditou-subtitle-visibility");
+        if (!styleEl) {
+            styleEl = document.createElement("style");
+            styleEl.id = "traditou-subtitle-visibility";
+            document.head.appendChild(styleEl);
+        }
+        if (this.mode !== "off") {
+            styleEl.textContent = `.${this.config.originalSubtitlesClassName} { display: none !important; }`;
+        } else {
+            styleEl.textContent = "";
+        }
     }
 
     /**
@@ -103,14 +118,6 @@ export class VideoPlayerAdapter {
      * Prepare the video player container - set up secondary observers
      */
     prepareContainer(mutations, observer) {
-        for (const mutation of mutations) {
-            this.processMutation(mutation);
-        }
-
-        // if (!this.originalSubtitleObserverRegistered) {
-        //     this.setupOriginalSubtitleObserver();
-        // }
-
         if (!this.resizeObserverRegistered) {
             this.setupResizeObserver();
         }
@@ -118,24 +125,26 @@ export class VideoPlayerAdapter {
         if (!this.subtitlePositionObserverRegistered) {
             this.setupSubtitlePositionObserver();
         }
+
+        if (!this.textTrackProtectionSetup) {
+            this.setupTextTrackProtection();
+        }
     }
 
-    /**
-     * Process individual mutations - override in subclasses for platform-specific logic
-     */
-    processMutation(mutation) {
-        // Default: hide original subtitles if they appear
-        if (this.config.originalSubtitlesClassName &&
-            mutation.target.className &&
-            typeof mutation.target.className === "string" &&
-            mutation.target.className.includes(this.config.originalSubtitlesClassName)) {
-            
-            const originalSubtitles = this.getOriginalSubtitles();
-            
-            const video = document.querySelector(this.config.videoSelector);
-            toggleTextTracks(this.mode, video, originalSubtitles);
-            console.log("toggled text tracks in processMutation")
-        }
+    setupTextTrackProtection() {
+        const video = document.querySelector(this.config.videoSelector);
+        if (!video) return;
+        this.textTrackProtectionSetup = true;
+
+        video.textTracks.addEventListener("change", () => {
+            if (this.mode === "off") return;
+            for (const track of video.textTracks) {
+                if (track.label === this.mode && track.mode !== "showing") {
+                    toggleTextTracks(this.mode, video, this.getOriginalSubtitles());
+                    return;
+                }
+            }
+        });
     }
 
     /**
@@ -233,6 +242,7 @@ export class VideoPlayerAdapter {
      */
     onModeChange(mode) {
         this.mode = mode;
+        this.applySubtitleVisibilityRule();
         const video = document.querySelector(this.config.videoSelector);
         this.originalSubtitles = this.getOriginalSubtitles();
         toggleTextTracks(mode, video, this.originalSubtitles);

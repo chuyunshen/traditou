@@ -387,7 +387,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     }
 
     function createTrack(video, type, host, subtitleMovedUp) {
-        track = video.addTextTrack("captions", type);
+        const track = video.addTextTrack("captions", type);
         appendCues(track, type, host, subtitleMovedUp);
         return track;
     }
@@ -408,7 +408,6 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     if (needToCreateTracks) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
             let track = createTrack(video, mode, host);
-            video.append(track);
         }
     } else {
         let bilingualTrack = getTrackByLabel(video, "dual-mode")
@@ -427,7 +426,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
 
 export function toggleTextTracks(mode, video, originalSubtitles) {
     let index = 0;
-    modeIndexDict = {} // key - mode; value - index
+    let modeIndexDict = {} // key - mode; value - index
     while (index < video.textTracks.length) {
         const textTrack = video.textTracks[index];
         if (textTrack.label === "dual-mode") {
@@ -448,25 +447,31 @@ export function toggleTextTracks(mode, video, originalSubtitles) {
         if (mode === "off") {
             if (originalSubtitles) {
                 originalSubtitles.style.display = 'block';
-            } 
+            }
             let index = 0;
             while (index < video.textTracks.length) {
-                video.textTracks[index].mode = "hidden";
+                if (video.textTracks[index].mode !== "hidden") {
+                    video.textTracks[index].mode = "hidden";
+                }
                 index++;
             }
             return;
         }
 
         if (originalSubtitles) {
-            originalSubtitles.style.display = 'none'; // this comes up at every mutation tho
-        } 
+            originalSubtitles.style.display = 'none';
+        }
         let targetIndex = modeIndexDict[mode]
         let index = 0;
         while (index < video.textTracks.length) {
             if (index === targetIndex) {
-                video.textTracks[index].mode = "showing";
+                if (video.textTracks[index].mode !== "showing") {
+                    video.textTracks[index].mode = "showing";
+                }
             } else {
-                video.textTracks[index].mode = "hidden";
+                if (video.textTracks[index].mode !== "hidden") {
+                    video.textTracks[index].mode = "hidden";
+                }
             }
             index++;
         }
@@ -527,7 +532,7 @@ export function refreshCues(newCues, processedCueIds, cueDict) {
 
     for (const cueId in cueDict) {
         const cue = cueDict[cueId];
-        if (startTime <= cue.startTime <= endTime || startTime <= cue.endTime <= endTime)  {
+        if (cue.startTime <= endTime && cue.endTime >= startTime) {
             newCuesHaveOverlapWithOldCues = true;
             break;
         }
@@ -558,8 +563,8 @@ export function refreshCues(newCues, processedCueIds, cueDict) {
 
 export function refreshTextTracks() {
     const video = document.getElementsByTagName("VIDEO")[0];
-    for (const index in video.textTracks.length) {
-        video.textTracks[index].mode = "hidden";
-        video.textTracks[index].mode = "showing";
+    for (let i = 0; i < video.textTracks.length; i++) {
+        video.textTracks[i].mode = "hidden";
+        video.textTracks[i].mode = "showing";
     }
 }
