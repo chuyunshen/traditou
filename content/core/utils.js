@@ -1,5 +1,3 @@
-import {moveSubtitlesUpBy} from "./config";
-
 /* telequebec does rolling cues, which is very difficult to read. From what I could gather, the cues look like the following:
 cue #1: start-time: t1, end-time: t2
     a
@@ -70,7 +68,7 @@ export function squashCues(cues, cueIdCount) {
         cueIdCount++;
         squashedCues.push(newCue);
     }
-    return [squashedCues, cueIdCount]; 
+    return arguments.length === 1 ? squashedCues : [squashedCues, cueIdCount]; 
 }
 
 

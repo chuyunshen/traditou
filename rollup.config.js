@@ -1,6 +1,6 @@
 export default [
     {
-      input: 'content/telequebec_content.js',
+      input: 'content/services/telequebec.js',
       output: {
         file: 'dist/telequebec_bundle.js',
         format: 'umd',
@@ -8,7 +8,7 @@ export default [
       }
     },
     {
-      input: 'content/toutv_content.js',
+      input: 'content/services/toutv.js',
       output: {
           file: 'dist/toutv_bundle.js',
           format: 'umd',
@@ -16,7 +16,7 @@ export default [
         }
     },
     {
-      input: 'content/noovo_content.js',
+      input: 'content/services/noovo.js',
       output: {
           file: 'dist/noovo_bundle.js',
           format: 'umd',
@@ -24,7 +24,7 @@ export default [
         }
     },
     {
-      input: 'content/prime_content.js',
+      input: 'content/services/prime.js',
       output: {
           file: 'dist/prime_bundle.js',
           format: 'umd',
@@ -32,7 +32,7 @@ export default [
         }
     },
     {
-      input: 'content/tv5_content.js',
+      input: 'content/services/tv5.js',
       output: {
           file: 'dist/tv5_bundle.js',
           format: 'umd',
