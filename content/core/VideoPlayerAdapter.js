@@ -280,7 +280,7 @@ export class VideoPlayerAdapter {
         if (this.config.refreshCuesForNewEpisodes) {
             refreshCues(frenchCues, this.processedCueIds, this.cueDict);
         }
-        createTranslateElements(frenchCues, this.wrapper);
+        await createTranslateElements(frenchCues, this.wrapper);
     }
 
     /**
@@ -292,23 +292,6 @@ export class VideoPlayerAdapter {
         } 
         return null;
     }
-
-    // /**
-    //  * Ensure the translation wrapper is in the DOM
-    //  */
-    // ensureWrapperInDOM() {
-    //     if (!getWrapper(document)) {
-    //         let parent = null;
-    //         if (this.config.wrapperParentSelector) {
-    //             parent = document.querySelector(this.config.wrapperParentSelector);
-    //         }
-    //         if (parent) {
-    //             parent.appendChild(this.wrapper);
-    //         } else {
-    //             document.body.appendChild(this.wrapper);
-    //         }
-    //     }
-    // }
 
     /**
      * Handle translation mutations - when Google Translate updates the hidden divs
