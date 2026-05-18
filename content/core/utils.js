@@ -68,7 +68,7 @@ export function squashCues(cues, cueIdCount) {
         cueIdCount++;
         squashedCues.push(newCue);
     }
-    return arguments.length === 1 ? squashedCues : [squashedCues, cueIdCount]; 
+    return [squashedCues, cueIdCount];
 }
 
 
@@ -120,7 +120,7 @@ export function squashCuesNoovo(cues) {
         cueIdCount++;
         squashedCues.push(newCue);
     }
-    return squashedCues;
+    return [squashedCues, cueIdCount];
 }
 
 // combine "abc", "bcd" to be "abcd"
@@ -323,7 +323,6 @@ export var addRule = (function(style){
 })(document.createElement("style"));
 
 
-// TODO: change the name of this.
 export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, subtitleMovedUp) {
     let notYetTranslatedCueDict = {}
     for (let cueId in cueDict) {
@@ -351,10 +350,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
             }
             // cue.text = cue.bilingualLines.join("\n");
         } else {
-            cue.bilingualLines = [cue.text.trim()];
-            cue.frenchLines = [cue.text.trim()];
-            cue.englishLines = [cue.text.trim()];
-            notYetTranslatedCueDict[cue.id] = cue;
+            console.log("div cant be found");
         }
     }
 
@@ -410,7 +406,9 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     }
     if (needToCreateTracks) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
+            // TODO: change back
             let track = createTrack(video, mode, host);
+            video.append(track);
         }
     } else {
         let bilingualTrack = getTrackByLabel(video, "dual-mode")
@@ -545,23 +543,22 @@ export function refreshCues(newCues, processedCueIds, cueDict) {
         while (processedCueIds.length > 0) {
             processedCueIds.pop();
         }
+        console.log("delete cueDict")
+        console.log(cueDict)
         for (const key in cueDict) {
             delete cueDict[key];
         }
         // remove old invisible translate
         document.getElementById("invisible-translate-wrapper").replaceChildren();
     }
-    console.log("delete cueDict")
-    console.log(cueDict)
     for (const cue of newCues) {
         if (processedCueIds.includes(cue.id)) continue;
         if (!cueDict.hasOwnProperty(cue.id)) {
             cueDict[cue.id] = cue;
         }
     }
-    console.log("cueDict")
+    console.log("refreshed cueDict")
     console.log(cueDict)
-    return newCuesHaveOverlapWithOldCues;
 }
 
 export function refreshTextTracks() {

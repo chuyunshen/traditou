@@ -14,6 +14,7 @@ export class VideoPlayerAdapter {
             // Selectors for finding elements
             videoSelector: "video",
             moveSubtitlesUpBy: -6,
+            refreshCuesForNewEpisodes: false,
             originalSubtitlesClassName: null,
             originalSubtitleIdToHide: null,
             controlBarSelector: null,
@@ -37,7 +38,7 @@ export class VideoPlayerAdapter {
         this.fetchedUrls = new Set();
         this.subtitleMovedUp = null;
         this.modified = false;
-        this.needToRefreshTextTracks = false;
+        this.needToRefreshTextTracks = true;
         this.resizeObserverRegistered = false;
         this.subtitlePositionObserverRegistered = false;
         this.textTrackProtectionSetup = false;
@@ -261,26 +262,25 @@ export class VideoPlayerAdapter {
         this.fetchedUrls.add(url);
 
         // Parse and process cues
-        let cues = await parseVttCues(original_vtt);
-        const processedCues = this.config.processCues(cues, this.cueIdCount);
+        let frenchCues = await parseVttCues(original_vtt);
+        const processedCues = this.config.processCues(frenchCues, this.cueIdCount);
         if (Array.isArray(processedCues) && processedCues.length === 2 && Array.isArray(processedCues[0])) {
-            cues = processedCues[0];
-            this.cueIdCount = processedCues[1];
-        } else {
-            cues = processedCues;
-            // processCues didn't return a new cueIdCount, so assign unique IDs now
-            // to prevent collisions when the same chunk-local IDs appear in a later chunk
-            for (const cue of cues) {
-                cue.id = this.cueIdCount++;
+            [frenchCues, this.cueIdCount] = processedCues;
+            for (const cue of frenchCues) {
+                if (this.processedCueIds.includes(cue.id)) continue;
+                if (!this.cueDict.hasOwnProperty(cue.id)) {
+                    cue.isElementCreated = false;
+                    this.cueDict[cue.id] = cue;
+                }
             }
+        } else {
+            frenchCues = processedCues;
         }
 
-        // Update cue dictionary and refresh tracks if needed
-        this.needToRefreshTextTracks = refreshCues(cues, this.processedCueIds, this.cueDict);
-        createTranslateElements(cues, this.wrapper);
-
-        // Append wrapper to page if not already there
-        this.ensureWrapperInDOM();
+        if (this.config.refreshCuesForNewEpisodes) {
+            refreshCues(frenchCues, this.processedCueIds, this.cueDict);
+        }
+        createTranslateElements(frenchCues, this.wrapper);
     }
 
     /**
@@ -293,22 +293,22 @@ export class VideoPlayerAdapter {
         return null;
     }
 
-    /**
-     * Ensure the translation wrapper is in the DOM
-     */
-    ensureWrapperInDOM() {
-        if (!getWrapper(document)) {
-            let parent = null;
-            if (this.config.wrapperParentSelector) {
-                parent = document.querySelector(this.config.wrapperParentSelector);
-            }
-            if (parent) {
-                parent.appendChild(this.wrapper);
-            } else {
-                document.body.appendChild(this.wrapper);
-            }
-        }
-    }
+    // /**
+    //  * Ensure the translation wrapper is in the DOM
+    //  */
+    // ensureWrapperInDOM() {
+    //     if (!getWrapper(document)) {
+    //         let parent = null;
+    //         if (this.config.wrapperParentSelector) {
+    //             parent = document.querySelector(this.config.wrapperParentSelector);
+    //         }
+    //         if (parent) {
+    //             parent.appendChild(this.wrapper);
+    //         } else {
+    //             document.body.appendChild(this.wrapper);
+    //         }
+    //     }
+    // }
 
     /**
      * Handle translation mutations - when Google Translate updates the hidden divs
@@ -328,9 +328,12 @@ export class VideoPlayerAdapter {
             video,
             this.subtitleMovedUp
         );
+        console.log("cueDict after adding English cues")
+        console.log(this.cueDict)
+        console.log("processedCueIds after adding English cues")
+        console.log(this.processedCueIds)
 
         this.originalSubtitles = this.getOriginalSubtitles();
-        toggleTextTracks(this.mode, video, this.originalSubtitles);
     }
 
     /**

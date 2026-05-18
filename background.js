@@ -2,13 +2,11 @@ chrome.webRequest.onCompleted.addListener(
   function(details) {
     if ((details.initiator === "https://telequebec.tv" && details.url.includes("vtt")) ||
       (details.initiator === "https://crave.ca" && details.url.includes("manifest.vtt")) ||
-      (details.initiator === "https://www.tv5plus.ca" && details.url.includes(".vtt")) ||
+      (details.initiator.includes("tv5plus.ca")) ||
       (details.initiator === "https://ici.tou.tv" && details.url.includes("vtt"))) {
+      console.log("Subtitle file request completed: " + details.url);
       if (!details.initiator.includes("chrome-extension")) {
-        url = details.url
-        if (details.initiator === "https://www.tv5plus.ca") {
-          url = details.url.substring(0, details.url.indexOf(".vtt") + 4)
-        }
+        const url = details.url
         fetch(url, {headers: {"from_traditou": "true"}}).then(res => res.text()).then( res =>
           { 
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
