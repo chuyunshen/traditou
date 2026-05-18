@@ -1,6 +1,8 @@
 const VTT_RULE_ID = 2001;
 const TTML_RULE_ID = 2002;
 
+const processedSubtitleUrls = new Set();
+
 async function setupSubtitleRules() {
   const rules = [
     {
@@ -40,6 +42,13 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((details) => {
   const tabId = details.request.tabId;
 
   if (tabId <= 0 || url.includes("from_traditou=true")) return;
+
+  // this is to prevent the infinite loop where the background script intercepts the subtitle URL request, sends it to the content script, which then creates a new request to fetch the subtitle, which is again intercepted by the background script, and so on. By keeping track of processed subtitle URLs, we can avoid this loop.
+  if (processedSubtitleUrls.has(url)) {
+    return;
+  }
+
+  processedSubtitleUrls.add(url);
 
   const isTtml = url.includes("ttml2");
 
