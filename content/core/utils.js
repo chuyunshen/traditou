@@ -245,20 +245,46 @@ export function createTranslateElements(cues, wrapper) {
 }
 
 
-// split lines
-export async function parseVttCues(vtt){
-    const url = getVTTURL(vtt);
+// split lines and automatically correct absolute timeline offsets
+export async function parseVttCues(vtt) {
+    // 1. Extract the MPEGTS timestamp from the raw VTT text header
+    const timeOffsetInSeconds = extractMpegtsOffset(vtt);
 
+    const url = getVTTURL(vtt);
     const video = document.createElement("video");
     const track = document.createElement("track");
     const cues = await vttToCues(video, track, url);
+    
     for (let cue of cues) {
+        // 2. Adjust the relative cue timestamps to the absolute video timeline
+        cue.startTime += timeOffsetInSeconds;
+        cue.endTime += timeOffsetInSeconds;
+
         const lines = cue.text.split("\n");
         let parsedLines = parseLines(lines);
         cue.parsedLines = parsedLines;
         cue.parsedLine = parsedLines.join(" ");
     }
     return cues;
+}
+
+/**
+ * Parses the Uplynk MPEGTS header string and converts the clock units to seconds.
+ * If no timestamp header is found, it falls back gracefully to 0.
+ */
+function extractMpegtsOffset(vttText) {
+    // Matches patterns like MPEGTS:368640 or MPEGTS: 1105920
+    const mpegtsMatch = vttText.match(/MPEGTS:\s*(\d+)/);
+    
+    if (mpegtsMatch && mpegtsMatch[1]) {
+        const mpegtsTicks = parseInt(mpegtsMatch[1], 10);
+        
+        // Uplynk uses standard 90kHz MPEG transport stream clocks
+        const ticksPerSecond = 90000; 
+        return mpegtsTicks / ticksPerSecond;
+    }
+    
+    return 0; // Fallback if the header isn't present
 }
 
 function parseLines(lines) {
@@ -323,7 +349,7 @@ export var addRule = (function(style){
 })(document.createElement("style"));
 
 
-export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, subtitleMovedUp) {
+export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, subtitleMovedUp, moveSubtitlesUpBy) {
     let notYetTranslatedCueDict = {}
     for (let cueId in cueDict) {
         let cue = cueDict[cueId];
@@ -354,7 +380,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
         }
     }
 
-    function appendCues(track, type, host, subtitleMovedUp) {
+    function appendCues(track, type, host, subtitleMovedUp, moveSubtitlesUpBy) {
         for (const cueId in cueDict) {
             let cue = cueDict[cueId];
             var theCue;
@@ -367,7 +393,7 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
                 theCue.align = "center";
                 theCue.position = "auto";
                 if (subtitleMovedUp) {
-                    theCue.line = moveSubtitlesUpBy[host];
+                    theCue.line = moveSubtitlesUpBy;
                 } else {
                     theCue.line = "auto";
                 }
@@ -385,9 +411,9 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
         }
     }
 
-    function createTrack(video, type, host, subtitleMovedUp) {
+    function createTrack(video, type, host, subtitleMovedUp, moveSubtitlesUpBy) {
         const track = video.addTextTrack("captions", type);
-        appendCues(track, type, host, subtitleMovedUp);
+        appendCues(track, type, host, subtitleMovedUp, moveSubtitlesUpBy);
         return track;
     }
 
@@ -406,17 +432,16 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     }
     if (needToCreateTracks) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
-            // TODO: change back
-            let track = createTrack(video, mode, host);
+            let track = createTrack(video, mode, host, subtitleMovedUp, moveSubtitlesUpBy);
             video.append(track);
         }
     } else {
         let bilingualTrack = getTrackByLabel(video, "dual-mode")
-        appendCues(bilingualTrack, "dual-mode", host, subtitleMovedUp);
+        appendCues(bilingualTrack, "dual-mode", host, subtitleMovedUp, moveSubtitlesUpBy);
         let englishTrack = getTrackByLabel(video, "english-mode");
-        appendCues(englishTrack, "english-mode", host, subtitleMovedUp);
+        appendCues(englishTrack, "english-mode", host, subtitleMovedUp, moveSubtitlesUpBy);
         let frenchTrack = getTrackByLabel(video, "french-mode");
-        appendCues(frenchTrack, "french-mode", host, subtitleMovedUp);
+        appendCues(frenchTrack, "french-mode", host, subtitleMovedUp, moveSubtitlesUpBy);
     }
 
 
@@ -523,6 +548,11 @@ export function adjustSubtitlePosition(spaceFromBottom) {
     meaning there are two cues both for second 1 - 5 of the video, delete all the old cues and old translate items.
 */ 
 export function refreshCues(newCues, processedCueIds, cueDict) {
+    if (!newCues || newCues.length === 0) {
+        console.log("ℹ️ No cues found in this subtitle segment chunk. Skipping refresh.");
+        return;
+    }
+
     let startTime = newCues[0].startTime
     let endTime = newCues[newCues.length -1].endTime
 
@@ -561,10 +591,33 @@ export function refreshCues(newCues, processedCueIds, cueDict) {
     console.log(cueDict)
 }
 
-export function refreshTextTracks() {
-    const video = document.getElementsByTagName("VIDEO")[0];
+export function refreshTextTracks(video) {
     for (let i = 0; i < video.textTracks.length; i++) {
+        let originalMode = video.textTracks[i].mode;
         video.textTracks[i].mode = "hidden";
-        video.textTracks[i].mode = "showing";
+        video.textTracks[i].mode = originalMode;
     }
+}
+
+export function hardResetCustomTextTracks(video) {
+    if (!video || !video.textTracks) return;
+
+    const targetLabels = ["dual-mode", "english-mode", "french-mode"];
+
+    for (let i = 0; i < video.textTracks.length; i++) {
+        const track = video.textTracks[i];
+        
+        if (targetLabels.includes(track.label)) {
+            // Disable the track so the browser stops attempting to paint cached layout elements
+            track.mode = "disabled";
+            
+            // Clean out the cues array completely
+            if (track.cues) {
+                for (let j = track.cues.length - 1; j >= 0; j--) {
+                    track.removeCue(track.cues[j]);
+                }
+            }
+        }
+    }
+    console.log("🧼 Persisted custom tracks successfully purged of old episode history.");
 }

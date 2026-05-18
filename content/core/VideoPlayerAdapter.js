@@ -1,6 +1,6 @@
 import {createWrapper, getWrapper, createTranslateElements, addRule, parseVttCues, 
     addEnglishToOriginalCues, getSavedMode, changeSubtitleFontSize, styleVideoCues, 
-    adjustSubtitlePosition, toggleTextTracks, refreshCues, refreshTextTracks} from "./utils";
+    adjustSubtitlePosition, toggleTextTracks, refreshCues, refreshTextTracks, hardResetCustomTextTracks} from "./utils";
 
 /**
  * VideoPlayerAdapter: Base class for handling subtitle injection across different streaming platforms
@@ -31,6 +31,7 @@ export class VideoPlayerAdapter {
         };
 
         // State
+        this.video = null;
         this.cueDict = {};
         this.processedCueIds = [];
         this.cueIdCount = 0;
@@ -38,7 +39,6 @@ export class VideoPlayerAdapter {
         this.fetchedUrls = new Set();
         this.subtitleMovedUp = null;
         this.modified = false;
-        this.needToRefreshTextTracks = true;
         this.resizeObserverRegistered = false;
         this.subtitlePositionObserverRegistered = false;
         this.textTrackProtectionSetup = false;
@@ -111,6 +111,34 @@ export class VideoPlayerAdapter {
      * Called when DOM mutations indicate the video player is ready
      */
     onVideoReady(mutations, observer) {
+        const currentVideo = document.querySelector(this.config.videoSelector);
+        if (!currentVideo) return;
+
+
+        if (this.video !== currentVideo || (this.video && this.video.currentSrc !== currentVideo.currentSrc)) {
+            console.log("🔄 New video detected! Resetting track injection pipeline.");
+            
+            // 1. Update our tracking reference
+            this.video = currentVideo;
+
+            // 2. Reset the lifecycle guard flags for this element context
+            this.resizeObserverRegistered = false;
+            this.subtitlePositionObserverRegistered = false;
+            this.textTrackProtectionSetup = false;
+
+            hardResetCustomTextTracks(currentVideo);
+
+            // 3. Clear data dictionaries if config calls for an episode refresh
+            if (this.config.refreshCuesForNewEpisodes) {
+                this.cueDict = {};
+                this.processedCueIds = [];
+                this.cueIdCount = 0;
+                if (document.getElementById("invisible-translate-wrapper")) {
+                    document.getElementById("invisible-translate-wrapper").replaceChildren();
+                }
+            }
+        }
+
         this.prepareContainer(mutations, observer);
     }
 
@@ -221,10 +249,35 @@ export class VideoPlayerAdapter {
      * Set up chrome message listener
      */
     setupMessageListener() {
-        chrome.runtime.onMessage.addListener((response, sender, sendResponse) => {
-            this.onMessage(response, sender, sendResponse);
-            return true;
-        });
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === "FETCH_SUBTITLE_FROM_PAGE") {
+          
+          // Fetch directly using the website's native context privileges
+          fetch(message.url)
+            .then(response => {
+              if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+              return response.text();
+            })
+            .then(textPayload => {
+              // Reconstruct the message object your parser expects
+              const parserPayload = {
+                type: "subtitles",
+                url: message.url
+              };
+      
+              if (message.format === "ttml") {
+                parserPayload["original_ttml"] = textPayload;
+              } else {
+                parserPayload["original_vtt"] = textPayload;
+              }
+      
+              // Direct this payload into your original processing loop
+              // (Replace handleSubtitlesReceived with your project's main subtitle function)
+              this.onMessage(parserPayload, sender, sendResponse);
+            })
+            .catch(err => console.error("Page-level subtitle fetch failed:", err));
+        }
+      });
     }
 
     /**
@@ -261,9 +314,14 @@ export class VideoPlayerAdapter {
         }
         this.fetchedUrls.add(url);
 
+        console.log(`Received subtitles for URL: ${url}`);
         // Parse and process cues
         let frenchCues = await parseVttCues(original_vtt);
+        console.log("Parsed french cues from VTT:")
+        console.log(frenchCues)
         const processedCues = this.config.processCues(frenchCues, this.cueIdCount);
+        console.log("Processed cues after service-specific processing:")
+        console.log(processedCues)
         if (Array.isArray(processedCues) && processedCues.length === 2 && Array.isArray(processedCues[0])) {
             [frenchCues, this.cueIdCount] = processedCues;
             for (const cue of frenchCues) {
@@ -299,17 +357,13 @@ export class VideoPlayerAdapter {
     async onTranslationMutation(mutations, observer) {
         const video = document.querySelector(this.config.videoSelector);
 
-        if (this.needToRefreshTextTracks) {
-            refreshTextTracks();
-            this.needToRefreshTextTracks = false;
-        }
-
         [this.cueDict, this.processedCueIds] = addEnglishToOriginalCues(
             this.config.serviceName,
             this.cueDict,
             this.processedCueIds,
             video,
-            this.subtitleMovedUp
+            this.subtitleMovedUp,
+            this.config.moveSubtitlesUpBy
         );
         console.log("cueDict after adding English cues")
         console.log(this.cueDict)

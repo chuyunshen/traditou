@@ -11,7 +11,6 @@ import { squashCuesNoovo } from "./utils";
 // ============================================================
 export const telequebecConfig = {
     serviceName: "telequebec",
-    videoSelector: "video",
     moveSubtitlesUpBy: -5,
     // originalSubtitleIdToHide: "français",
     // Brightcove uses video-js player
@@ -42,7 +41,6 @@ export const telequebecConfig = {
 // ============================================================
 export const primeConfig = {
     serviceName: "prime",
-    videoSelector: "video",
     moveSubtitlesUpBy: -6,
     refreshCuesForNewEpisodes: true,
     originalSubtitlesClassName: "atvwebplayersdk-captions-overlay",
@@ -66,7 +64,6 @@ export const primeConfig = {
 // ============================================================
 export const noovoConfig = {
     serviceName: "noovo",
-    videoSelector: "video",
     moveSubtitlesUpBy: -6,
     refreshCuesForNewEpisodes: true,
     originalSubtitlesClassName: "shaka-text-container",
@@ -85,13 +82,12 @@ export const noovoConfig = {
 // ============================================================
 export const toutvConfig = {
     serviceName: "toutv",
-    videoSelector: "video",
     moveSubtitlesUpBy: -6,
     originalSubtitlesClassName: "rc-cues-container",
     refreshCuesForNewEpisodes: true,
-    wrapperParentSelector: "#player-video",
-    userActiveClassName: "vjs-user-active",
-    userInactiveClassName: "vjs-user-inactive",
+    wrapperParentSelector: ".rcplayer-bottom-controller",
+    userActiveClassName: "rcplayer-show",
+    userInactiveClassName: "rcplayer-hidden",
     subtitlePositionObserverConfig: {
         attributes: true,
         attributeFilter: ["class"]
@@ -121,12 +117,12 @@ export const toutvConfig = {
 // ============================================================
 export const tv5Config = {
     serviceName: "tv5",
-    videoSelector: "video",
     moveSubtitlesUpBy: -5,
+    refreshCuesForNewEpisodes: false,
     originalSubtitlesClassName: "bmpui-ui-subtitle-label",
-    controlBarSelector: "video-js",
-    userActiveClassName: "vjs-user-active",
-    userInactiveClassName: "vjs-user-inactive",
+    controlBarSelector: ".bmpui-ui-uicontainer",
+    userActiveClassName: "bmpui-controls-shown",
+    userInactiveClassName: "bmpui-controls-hidden",
     subtitlePositionObserverConfig: {
         attributes: true,
         attributeFilter: ["class"]
@@ -139,7 +135,6 @@ export const tv5Config = {
 // ============================================================
 export const newServiceTemplate = {
     serviceName: "new-service",
-    videoSelector: "video", // CSS selector for video element
     originalSubtitlesClassName: null, // Class of original subtitles container
     originalSubtitleIdToHide: null, // ID of original subtitle track to hide
     wrapperParentSelector: null, // Where to append the translation wrapper

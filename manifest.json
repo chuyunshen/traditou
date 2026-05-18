@@ -20,7 +20,10 @@
     "permissions": [
         "storage",
         "tabs",
-        "webRequest"
+        "webRequest",
+        "declarativeNetRequest",
+        "declarativeNetRequestFeedback",
+        "declarativeNetRequestWithHostAccess"
       ],
     "host_permissions": [
         "https://*.telequebec.tv/*",
