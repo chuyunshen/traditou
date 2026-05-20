@@ -33,7 +33,7 @@ async function setupSubtitleRules() {
     addRules: rules
   });
   
-  console.log("Global Subtitle URL Interceptors Active.");
+  console.log("Traditou Subtitle URL Interceptors Active.");
 }
 
 // Intercept the URL and send it down to the page context
@@ -41,9 +41,15 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((details) => {
   const url = details.request.url;
   const tabId = details.request.tabId;
 
-  if (tabId <= 0 || url.includes("from_traditou=true")) return;
+  if (tabId <= 0) return;
 
-  // this is to prevent the infinite loop where the background script intercepts the subtitle URL request, sends it to the content script, which then creates a new request to fetch the subtitle, which is again intercepted by the background script, and so on. By keeping track of processed subtitle URLs, we can avoid this loop.
+  /**
+   * this is to prevent the infinite loop where the background script 
+   * intercepts the subtitle URL request, sends it to the content script, 
+   * which then creates a new request to fetch the subtitle, which is again 
+   * intercepted by the background script, and so on. 
+   * By keeping track of processed subtitle URLs, we can avoid this loop.
+   */ 
   if (processedSubtitleUrls.has(url)) {
     return;
   }

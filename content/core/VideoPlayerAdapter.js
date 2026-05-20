@@ -85,6 +85,7 @@ export class VideoPlayerAdapter {
      * Set up the invisible translation wrapper
      */
     setupWrapper() {
+        console.log("Setting up translation wrapper");
         document.body.appendChild(this.wrapper);
         this.translationObserver = new MutationObserver((mutations, observer) => 
             this.onTranslationMutation(mutations, observer)
@@ -108,10 +109,20 @@ export class VideoPlayerAdapter {
     }
 
     /**
+     * Get the last video. For toutv, when playing the next video, the page just inserts
+     * a new video with the same id.
+     */
+    getVideo() {
+        const videos = document.querySelectorAll(this.config.videoSelector);
+        return videos.length > 0 ? videos[videos.length - 1] : null;
+    }
+
+    /**
      * Called when DOM mutations indicate the video player is ready
      */
     onVideoReady(mutations, observer) {
-        const currentVideo = document.querySelector(this.config.videoSelector);
+        console.log("running onVideoReady")
+        const currentVideo = this.getVideo();
         if (!currentVideo) return;
 
 
@@ -125,8 +136,6 @@ export class VideoPlayerAdapter {
             this.resizeObserverRegistered = false;
             this.subtitlePositionObserverRegistered = false;
             this.textTrackProtectionSetup = false;
-
-            hardResetCustomTextTracks(currentVideo);
 
             // 3. Clear data dictionaries if config calls for an episode refresh
             if (this.config.refreshCuesForNewEpisodes) {
@@ -147,21 +156,25 @@ export class VideoPlayerAdapter {
      * Prepare the video player container - set up secondary observers
      */
     prepareContainer(mutations, observer) {
+        console.log("Preparing container")
         if (!this.resizeObserverRegistered) {
+            console.log("Setting up resize observer");
             this.setupResizeObserver();
         }
 
         if (!this.subtitlePositionObserverRegistered) {
+            console.log("Setting up subtitle position observer");
             this.setupSubtitlePositionObserver();
         }
 
         if (!this.textTrackProtectionSetup) {
+            console.log("Setting up text track protection");
             this.setupTextTrackProtection();
         }
     }
 
     setupTextTrackProtection() {
-        const video = document.querySelector(this.config.videoSelector);
+        const video = this.getVideo();
         if (!video) return;
         this.textTrackProtectionSetup = true;
 
@@ -180,9 +193,9 @@ export class VideoPlayerAdapter {
      * Set up resize observer to adjust subtitle font size
      */
     setupResizeObserver() {
-        const video = document.querySelector(this.config.videoSelector);
+        const video = this.getVideo();
         if (video) {
-            const resizeObserver = new ResizeObserver(() => changeSubtitleFontSize());
+            const resizeObserver = new ResizeObserver(() => changeSubtitleFontSize(video));
             resizeObserver.observe(video);
             this.resizeObserverRegistered = true;
         }
@@ -233,14 +246,15 @@ export class VideoPlayerAdapter {
         const isUserActive = this.config.userActiveClassName && className.includes(this.config.userActiveClassName);
         const isUserInactive = this.config.userInactiveClassName && className.includes(this.config.userInactiveClassName);
 
+        const video = this.getVideo();
+        if (!video) return;
         if (isUserActive && (this.subtitleMovedUp === null || !this.subtitleMovedUp)) {
             this.subtitleMovedUp = true;
-            adjustSubtitlePosition(this.config.moveSubtitlesUpBy);
+            adjustSubtitlePosition(video, this.config.moveSubtitlesUpBy);
         } else if (isUserInactive && (this.subtitleMovedUp === null || this.subtitleMovedUp)) {
-            const video = document.querySelector(this.config.videoSelector);
-            if (video && !video.paused) {
+            if (!video.paused) {
                 this.subtitleMovedUp = false;
-                adjustSubtitlePosition("auto");
+                adjustSubtitlePosition(video, "auto");
             }
         }
     }
@@ -249,6 +263,7 @@ export class VideoPlayerAdapter {
      * Set up chrome message listener
      */
     setupMessageListener() {
+        console.log("Setting up message listener for subtitle fetching");
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === "FETCH_SUBTITLE_FROM_PAGE") {
           
@@ -284,6 +299,7 @@ export class VideoPlayerAdapter {
      * Handle messages from background script
      */
     async onMessage(response, sender, sendResponse) {
+        console.log("Received message in content script:", response);
         if (response.type === "mode") {
             this.onModeChange(response.mode);
         } else if (response.type === "subtitles") {
@@ -297,7 +313,7 @@ export class VideoPlayerAdapter {
     onModeChange(mode) {
         this.mode = mode;
         this.applySubtitleVisibilityRule();
-        const video = document.querySelector(this.config.videoSelector);
+        const video = this.getVideo();
         this.originalSubtitles = this.getOriginalSubtitles();
         toggleTextTracks(mode, video, this.originalSubtitles);
     }
@@ -355,7 +371,7 @@ export class VideoPlayerAdapter {
      * Handle translation mutations - when Google Translate updates the hidden divs
      */
     async onTranslationMutation(mutations, observer) {
-        const video = document.querySelector(this.config.videoSelector);
+        const video = this.getVideo();
 
         [this.cueDict, this.processedCueIds] = addEnglishToOriginalCues(
             this.config.serviceName,

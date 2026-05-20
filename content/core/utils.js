@@ -350,6 +350,7 @@ export var addRule = (function(style){
 
 
 export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, subtitleMovedUp, moveSubtitlesUpBy) {
+    if (!video) return;
     let notYetTranslatedCueDict = {}
     for (let cueId in cueDict) {
         let cue = cueDict[cueId];
@@ -433,7 +434,6 @@ export function addEnglishToOriginalCues(host, cueDict, processedCueIds, video, 
     if (needToCreateTracks) {
         for (const mode of ["dual-mode", "english-mode", "french-mode"]) {
             let track = createTrack(video, mode, host, subtitleMovedUp, moveSubtitlesUpBy);
-            video.append(track);
         }
     } else {
         let bilingualTrack = getTrackByLabel(video, "dual-mode")
@@ -512,10 +512,10 @@ export async function getSavedMode() {
     return mode;
 }
 
-export function changeSubtitleFontSize() {
-    const video = document.getElementsByTagName("VIDEO")[0]
+export function changeSubtitleFontSize(video) {
     if (video) {
-        let newFontSize = video.parentElement.offsetWidth * 0.02;
+        let newFontSize = video.parentElement?.offsetWidth * 0.02 | null;
+        if (!newFontSize) return;
         addRule("video::cue", { "font-size": `${newFontSize}px`});
     }
 }
@@ -532,9 +532,9 @@ export function styleVideoCues() {
 }
 
 // spaceFrom Bottom determines how far the subtitles are from the bottom of the video
-export function adjustSubtitlePosition(spaceFromBottom) {
-    if (!document.getElementsByTagName("VIDEO")[0]) return;
-    let textTracks = document.getElementsByTagName("VIDEO")[0].textTracks;
+export function adjustSubtitlePosition(video, spaceFromBottom) {
+    if (!video) return;
+    let textTracks = video.textTracks;
     for (let textTrackIndex of [...Array(textTracks.length).keys()]) {
         for (let cueIndex in textTracks[textTrackIndex].cues) {
             textTracks[textTrackIndex].cues[cueIndex].line = spaceFromBottom;
@@ -608,15 +608,33 @@ export function hardResetCustomTextTracks(video) {
         const track = video.textTracks[i];
         
         if (targetLabels.includes(track.label)) {
-            // Disable the track so the browser stops attempting to paint cached layout elements
-            track.mode = "disabled";
-            
-            // Clean out the cues array completely
-            if (track.cues) {
+            // 1. Temporarily flip mode to showing to force the browser to populate the cue array properties
+            track.mode = "showing";
+
+            // 2. Clear out standard cues
+            if (track.cues && track.cues.length > 0) {
                 for (let j = track.cues.length - 1; j >= 0; j--) {
-                    track.removeCue(track.cues[j]);
+                    try {
+                        track.removeCue(track.cues[j]);
+                    } catch (e) {
+                        // Catch native DOM modifications mismatches safely
+                    }
                 }
             }
+
+            // 3. Fallback: Clear activeCues if the main array was detached/frozen by the player switch
+            if (track.activeCues && track.activeCues.length > 0) {
+                for (let k = track.activeCues.length - 1; k >= 0; k--) {
+                    try {
+                        track.removeCue(track.activeCues[k]);
+                    } catch (e) {
+                        // Catch native DOM modifications mismatches safely
+                    }
+                }
+            }
+
+            // 4. Force state to disabled so it drops old rendering layout bindings completely
+            track.mode = "disabled";
         }
     }
     console.log("🧼 Persisted custom tracks successfully purged of old episode history.");
